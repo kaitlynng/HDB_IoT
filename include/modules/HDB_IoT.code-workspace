@@ -1,0 +1,21 @@
+{
+	"folders": [
+		{
+			"path": "/home/kaitlyn/Desktop/aidrivers"
+		},
+		{
+			"name": "210521-014701-esp32doit-devkit-v1",
+			"path": "/home/kaitlyn/Documents/PlatformIO/Projects/210521-014701-esp32doit-devkit-v1"
+		},
+		{
+			"name": "HDB IoT",
+			"path": "/home/kaitlyn/Desktop/aidrivers/HDB IoT"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"atomic": "cpp",
+			"functional": "cpp"
+		}
+	}
+}
