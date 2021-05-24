@@ -24,7 +24,7 @@
 
 
 // CAN params //
-#define CAN_RX_QUEUE_SIZE   151
+#define CAN_RX_QUEUE_SIZE   200
 #define CAN_RXPIN           GPIO_NUM_4
 #define CAN_TXPIN           GPIO_NUM_5
 

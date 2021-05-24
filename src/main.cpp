@@ -67,7 +67,9 @@ long millis_next;
 void store(int id, char* val) {
   strncpy(data_c[id], val, 50);
   if (filenames_arr[id][0] != '\0') {
-    sd_wrapper.write_file(filenames_arr[id], val);
+    if (strcmp(val, DEFAULT_VALUES[id]) != 0) { // check if it's a default value
+      sd_wrapper.write_file(filenames_arr[id], val);
+    }
   }
 }
 
@@ -257,7 +259,6 @@ void setup() {
   }
 
   //for max_depth, need the float value
-  
   store(ID::max_depth, (float)atof(data_c[ID::max_depth]));
 
   //Setup time synchronisation

@@ -44,7 +44,7 @@ public:
             return false;
         }
         while (file.available()) {
-            data_s = file.readString();
+            data_s = file.readString().trim();
         }
         file.close();
         if (data_s) {
