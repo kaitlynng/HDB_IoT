@@ -8,8 +8,10 @@
 class EmailWrapper
 {
 public:
-    EmailWrapper(String smtp_server, int smtp_server_port, bool flag = true)
-    : m_smtp_server(smtp_server), m_smtp_server_port(smtp_server_port), active_flag(flag) {}
+    EmailWrapper(const char* smtp_server, const int smtp_server_port, bool flag = true)
+    : m_smtp_server_port(smtp_server_port), active_flag(flag) {
+        m_smtp_server = strdup(smtp_server);
+    }
 
     EmailWrapper() = delete;
     ~EmailWrapper() {}
@@ -30,9 +32,9 @@ public:
         }
     }
 
-    void send(const String sender_name, const String sender_account, const String sender_pass, 
-              const int num_recipients, const String recipients[], 
-              String subject, String msg, const String filename) {
+    void send(const char* sender_name, const char* sender_account, const char* sender_pass, 
+              const int num_recipients, const char* recipients[], 
+              char* subject, char* msg, char* filename, bool attach_file) {
         
         if (!active_flag) {
             return;
@@ -57,8 +59,10 @@ public:
           smtpData.addRecipient(recipients[i]);
         }
 
-        smtpData.addAttachFile(filename);
-        smtpData.setFileStorageType(MailClientStorageType::SD);
+        if (attach_file) {
+            smtpData.addAttachFile(filename);
+            smtpData.setFileStorageType(MailClientStorageType::SD);
+        }
 
         smtpData.setSendCallback(sendCallback);
 
@@ -76,7 +80,7 @@ public:
 
 
 private:
-    String m_smtp_server;
+    char* m_smtp_server;
     int m_smtp_server_port;
 
     SMTPData smtpData;

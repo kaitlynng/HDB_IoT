@@ -28,37 +28,59 @@ public:
         }
     }
 
-    String read_file(String filename) {
-        String SD_saved;
-        File file = SD.open(filename);
-        while (file.available()) {
-            SD_saved = file.readString();
-        }
-        file.close();
-        Serial.println("read sucessful");
-        return SD_saved;
+    bool is_file_available(char* path) {
+        File file = SD.open(path);
+        return file.available();
     }
 
-    void write_file(char* path, String data) {
+    bool read_file(char* path, const int cbuff_size, char* cbuff) {
+        String data_s;
+        Serial.print("Reading from SD: ");
+        Serial.print(path);
+        Serial.print(".....");
+        File file = SD.open(path);
+        if (!file.available()) {
+            Serial.println("WARNING: Unable to open file!");
+            return false;
+        }
+        while (file.available()) {
+            data_s = file.readString();
+        }
+        file.close();
+        if (data_s) {
+            data_s.toCharArray(cbuff, cbuff_size);
+            Serial.println("read sucessful");
+            return true;
+        } else {
+            Serial.println("WARNING: Read failed!");
+            return false;
+        }
+        
+        
+    }
+
+    void write_file(char* path, char* data) {
         File file = SD.open(path, FILE_WRITE);
+        String data_s = data;
         if (!file) {
             Serial.println("WARNING: Failed to open file for writing");
             return;
         }
-        if (!file.print(data)) {
+        if (!file.print(data_s)) {
             Serial.println("WARNING: Failed to write to file!");
         }
         file.close();
     }
 
-    void append_file(String path, String data) {
+    void append_file(char* path, char* data) {
         File file = SD.open(path, FILE_APPEND);
+        String data_s = data;
         if (!file) {
             Serial.println("WARNING: Failed to open file for writing");
             return;
         }
 
-        if (!file.print(data)) {
+        if (!file.print(data_s)) {
             Serial.println("WARNING: Failed to write to file!");
         }
         file.close();

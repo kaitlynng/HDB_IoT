@@ -18,6 +18,7 @@ public:
 
     bool poll(double data[2]) {
         if (ss.available() > 0) {
+            //Serial.println("Reading GPS data...");
             if (gps.encode(ss.read()) && gps.location.isValid()) {
                 data[0] = gps.location.lat();
                 data[1] = gps.location.lng();

@@ -4,9 +4,8 @@
 #include <Arduino.h>
 
 // network credentials
-#define NETWORK_SSID    "AIDrivers SG - 2.4G" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
-#define NETWORK_PASS    "@1Drivers75" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
-#define NETWORK_TIMEOUT 30000 //ms
+#define NETWORK_SSID    "Ng-fam-weefee-extraordinaire" // "AIDrivers SG - 2.4G" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
+#define NETWORK_PASS    "tecknam67941827" // "@1Drivers75" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
 
 // MQTT server
 #define MQTT_SERVER         "2.tcp.ngrok.io"
@@ -52,8 +51,13 @@ const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *serve
 //const String EMAIL_RECIPIENTS[EMAIL_NUM_RECIPIENTS] = {"aidrivers.crane@gmail.com", "radiancekw@gmail.com", "tankangjie@gmail.com"}; //aidrivers.demo@gmail.com
 
 #define EMAIL_NUM_RECIPIENTS    1
-const char EMAIL_RECIPIENTS[][30] = {"kirabananana@gmail.com"}; //aidrivers.demo@gmail.com
+const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com"}; //aidrivers.demo@gmail.com
 
 #define UPDATE_RATE     10 //seconds
+
+#define SQL_FLAG        true
+#define MQTT_FLAG       true
+#define EMAIL_FLAG      false
+
 
 #endif //USER_CONFIG_H_
