@@ -23,7 +23,7 @@ public:
         CAN_cfg.rx_queue = xQueueCreate(m_rx_queue_size, sizeof(CAN_frame_t));
         // Init CAN Module
         ESP32Can.CANInit();
-        Serial.println("can init success");
+        Serial.println("Can BUS initialized success");
  
     }
 
