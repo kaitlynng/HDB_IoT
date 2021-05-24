@@ -5,8 +5,6 @@
 #include <ESP32CAN.h>
 #include <CAN_config.h>
 
-CAN_device_t CAN_cfg;                // Does not work if it is not a global variable...
-
 class CanWrapper 
 {
 public:
@@ -29,14 +27,11 @@ public:
  
     }
 
-    bool poll(String data[3]) {
+    void poll(String data[3]) {
         String can_id;           //stores CANID
 
         String upper_bytes ;      //stores upper bytes of can msg
         String lower_bytes ;      //stores lower bytes of can msg
-
-        uint32_t msb_i;
-        uint32_t lsb_i;
 
         String msb;                //stores upper bytes of can msg after translate
         String lsb;                //stores upper bytes of can msg after translate
@@ -54,39 +49,44 @@ public:
                 can_id = String(rx_frame.MsgID,HEX); //get CANID
                 upper_bytes = String(rx_frame.data.u8[7],HEX)+String(rx_frame.data.u8[6],HEX)+String(rx_frame.data.u8[5],HEX)+String(rx_frame.data.u8[4],HEX); //swaps endian to convert  ie  Data 0xA6 0x23 0xB7 0x3E 0xCC 0xCC 0xCC 0xBF [bfcccccc (-1.6) b7 b6 b5 b4]
                 lower_bytes = String(rx_frame.data.u8[3],HEX)+String(rx_frame.data.u8[2],HEX)+String(rx_frame.data.u8[1],HEX)+String(rx_frame.data.u8[0],HEX); //swaps endians to convert  ie  Data 0xA6 0x23 0xB7 0x3E 0xCC 0xCC 0xCC 0xBF [3eb723a6 (0.36) b3 b2 b1 b0]
-                msb_i = rx_frame.data.u8[4] + rx_frame.data.u8[5] * 256 + rx_frame.data.u8[6] * pow(256,2) + rx_frame.data.u8[7] * pow(256,3);
-                lsb_i = rx_frame.data.u8[0] + rx_frame.data.u8[1] * 256 + rx_frame.data.u8[2] * pow(256,2) + rx_frame.data.u8[3] * pow(256,3);
-
-                upper_bytes.toCharArray(modbus_data1, 16);         //stores upper bytes of message tochar array for conversion to floatingpoint in union
-                lower_bytes.toCharArray(modbus_data2, 16);       //stores lower bytes of message tochar array for conversion to floatingpoint in union
-
-                CAN_data.i = strtoul(modbus_data1, NULL, 16);
-                float upper = CAN_data.f;
-                static char message_data1[8];
-                dtostrf(upper, 7, 2, message_data1);
-                msb.concat(message_data1);
-                
-                CAN_data.i = strtoul(modbus_data2, NULL, 16);
-                float lower= CAN_data.f;
-                static char message_data2[8];
-                dtostrf(lower, 7, 2, message_data2);
-                lsb.concat(message_data2);
-
-                CAN_data_i.msb = msb_i;
-                CAN_data_i.lsb = lsb_i;
-
-                data[0] = can_id;
-                data[1] = msb;
-                data[2] = lsb;
-
-                // respond to sender
-                // ESP32Can.CANWriteFrame(&rx_frame);
-                return true; // useful data is obtained
             }
         }
 
-        return false; // no useful data obtained
+        upper_bytes.toCharArray(modbus_data1, 16);         //stores upper bytes of message tochar array for conversion to floatingpoint in union
+        lower_bytes.toCharArray(modbus_data2, 16);       //stores lower bytes of message tochar array for conversion to floatingpoint in union
+
+        CAN_data.i = strtoul(modbus_data1, NULL, 16);
+        float upper = CAN_data.f;
+        m_CAN_data.msb_i = CAN_data.i;
+        m_CAN_data.msb_f = upper;
+        static char message_data1[8];
+        dtostrf(upper, 7, 2, message_data1);
+        msb.concat(message_data1);
+        
+        CAN_data.i = strtoul(modbus_data2, NULL, 16);
+        float lower= CAN_data.f;
+        m_CAN_data.lsb_i = CAN_data.i;
+        m_CAN_data.lsb_f = lower;
+        static char message_data2[8];
+        dtostrf(lower, 7, 2, message_data2);
+        lsb.concat(message_data2);
+
+
+        data[0] = can_id;
+        data[1] = msb;
+        data[2] = lsb;
+
+        // respond to sender
+        // ESP32Can.CANWriteFrame(&rx_frame);
     }
+
+    float getMsbFloatCanValue(void){
+        return m_CAN_data.msb_f;
+    }
+
+    float getLsbFloatCanValue(void){
+        return m_CAN_data.lsb_f;
+    } 
 
 
 private:
@@ -95,12 +95,15 @@ private:
     int m_rx_queue_size;
     CAN_speed_t m_speed;
 
+    CAN_device_t CAN_cfg;                // CAN Config
     CAN_frame_t rx_frame;
 
     struct {
-        uint32_t msb;
-        uint32_t lsb;
-    } CAN_data_i;
+        uint32_t msb_i;
+        uint32_t lsb_i;
+        float msb_f;
+        float lsb_f;
+    } m_CAN_data;
 };
 
 #endif
