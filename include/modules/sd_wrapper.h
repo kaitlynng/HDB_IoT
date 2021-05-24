@@ -28,6 +28,11 @@ public:
         }
     }
 
+    bool is_file_available(char* path) {
+        File file = SD.open(path);
+        return file.available();
+    }
+
     bool read_file(char* path, const int cbuff_size, char* cbuff) {
         String data_s;
         Serial.print("Reading from SD: ");

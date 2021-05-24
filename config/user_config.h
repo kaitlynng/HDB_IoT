@@ -55,4 +55,9 @@ const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com"}; //aidrivers.demo@gm
 
 #define UPDATE_RATE     10 //seconds
 
+#define SQL_FLAG        true
+#define MQTT_FLAG       true
+#define EMAIL_FLAG      false
+
+
 #endif //USER_CONFIG_H_

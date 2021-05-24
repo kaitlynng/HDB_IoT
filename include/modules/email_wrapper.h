@@ -34,7 +34,7 @@ public:
 
     void send(const char* sender_name, const char* sender_account, const char* sender_pass, 
               const int num_recipients, const char* recipients[], 
-              char* subject, char* msg, char* filename) {
+              char* subject, char* msg, char* filename, bool attach_file) {
         
         if (!active_flag) {
             return;
@@ -59,8 +59,10 @@ public:
           smtpData.addRecipient(recipients[i]);
         }
 
-        smtpData.addAttachFile(filename);
-        smtpData.setFileStorageType(MailClientStorageType::SD);
+        if (attach_file) {
+            smtpData.addAttachFile(filename);
+            smtpData.setFileStorageType(MailClientStorageType::SD);
+        }
 
         smtpData.setSendCallback(sendCallback);
 

@@ -37,11 +37,12 @@ char* datetime_fmt = strdup("YYYY-MM-DD_hh-mm-ss");
 
 // objects
 CanWrapper can_wrapper(CAN_TXPIN, CAN_RXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
-SqlWrapper sql_wrapper(MYSQL_SERVER_ADDRESS, MYSQL_USER, MYSQL_PASS, client);
 GpsWrapper gps_wrapper(GPS_TXPIN, GPS_RXPIN, GPS_BAUDRATE);
 SdWrapper sd_wrapper(SD_CS);
-EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT);
-MqttWrapper mqtt_wrapper(client, MQTT_SERVER, MQTT_SERVER_PORT, MQTT_CLIENT);
+
+SqlWrapper sql_wrapper(MYSQL_SERVER_ADDRESS, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
+MqttWrapper mqtt_wrapper(client, MQTT_SERVER, MQTT_SERVER_PORT, MQTT_CLIENT, MQTT_FLAG);
+EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT, EMAIL_FLAG);
 
 // variables
 String can_data[3]; // {can_id, msb, lsb}
@@ -350,9 +351,18 @@ void loop() {
     format_email_msg(NUM_EMAIL_FIELDS, EMAIL_FIELDS, EMAIL_FIELD_IDS, data_c, cbuff_size, cbuff);
     Serial.println(email_subject);
     Serial.println(cbuff);
-    //email_wrapper.send(EMAIL_SENDER_NAME, EMAIL_SENDER_ACCOUNT, EMAIL_SENDER_PASS, 
-    //                  EMAIL_NUM_RECIPIENTS, EMAIL_RECIPIENTS,
-    //                  email_subject, cbuff, data_c[ID::csv_filename]);
+
+    bool attach_file;
+    if (sd_wrapper.is_file_available(data_c[ID::csv_filename])) {
+      attach_file = true;
+    } else {
+      attach_file = false;
+      Serial.println("WARNING: Unable to open csv file for email attachment!");
+    }
+
+    email_wrapper.send(EMAIL_SENDER_NAME, EMAIL_SENDER_ACCOUNT, EMAIL_SENDER_PASS, 
+                     EMAIL_NUM_RECIPIENTS, EMAIL_RECIPIENTS,
+                     email_subject, cbuff, data_c[ID::csv_filename], attach_file);
 
     //update previous values to current value
     store(ID::prev_hole_num, data_c[ID::hole_num]);
