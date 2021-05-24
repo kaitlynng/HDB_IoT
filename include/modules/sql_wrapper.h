@@ -12,9 +12,6 @@ public:
     SqlWrapper(const int server_addr[], const char* user, const char* pass, WiFiClient &client, bool flag = true) 
     : m_server_addr(server_addr[0], server_addr[1], server_addr[2], server_addr[3]), 
       conn(&client), active_flag(flag) {
-          if (!active_flag) {
-              Serial.println("WARNING: SQL is inactivated!");
-          }
           m_user = strdup(user); // convert const char* to char* for SQL API calls
           m_pass = strdup(pass);
       } //IPAddress serverAddr(216,219,81,80); 

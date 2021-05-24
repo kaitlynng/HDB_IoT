@@ -16,15 +16,26 @@
 #define uS_TO_S_FACTOR              1000000  /* Conversion factor for micro seconds to seconds */
 #define TIME_TO_SLEEP               60 * MINSET /* Time ESP32 will go to sleep (in seconds) */
 
+// WIFI network params //
+#define NETWORK_TIMEOUT 10 // seconds
+
 // MQTT params //
 #define MQTT_RECON      0
 
-// UART GPS //
+
+// CAN params //
+#define CAN_RX_QUEUE_SIZE   151
+#define CAN_RXPIN           GPIO_NUM_4
+#define CAN_TXPIN           GPIO_NUM_5
+
+#define CAN_TIMEOUT     10 // seconds
+
+// UART GPS params //
 #define GPS_RXPIN       16
 #define GPS_TXPIN       17
 #define GPS_BAUDRATE    9600
 
-// OLED //
+// OLED params //
 #define SCREEN_WIDTH    128
 #define SCREEN_HEIGHT   64
 #define OLED_RESET      -1
@@ -41,28 +52,37 @@ enum ID {
     LAST
 };
 
-// filenames //
-#define NUM_STORAGE_FILENAMES   10
+const char* DEFAULT_VALUES[] = {
+    "Crane#", "Crane#", "EventTitle", "EventID", "EventType",
+    "###", "Contract#", "0.0.0.0", 
+    "#", "description", "#.#####", 
+    "#.#####", "#.#####", "#.#", "#",
+    "default", "YYYY-MM-DD_hh-mm-ss", 
+    "#.#####", "#.#####", "#.#####", "#.#####", "#.#####", 
+    "YYYY-MM-DD_hh-mm-ss", "#",
+    "/default.csv"
+};
 
-const char STORAGE_FILENAMES[][20] = {
-    "/Hole_diameter", "/Hole_Number", "/initialdate.txt", 
-    "/MachineID.txt", "/MachineID.txt", "/depthMAX.txt",
+// filenames //
+#define NUM_STORAGE_FILENAMES   11
+#define FILENAME_SIZE           30
+const char* STORAGE_FILENAMES[] = {
+    "/Hole_diameter", "/Hole_Number", "/Hole_Number", "/initialdate.txt", 
+    "/MachineID.txt", "/MachineID.txt", "/Intended_depth.txt", "/depthMAX.txt",
     "/BlockNO.txt", "/ContractNo.txt", "/CSVFilename.txt"
 };
 
 const int STORAGE_FILENAME_IDS[] = {
-    ID::hole_dia, ID::hole_num, ID::prev_dt, 
-    ID::sender_id, ID::sensor_id, ID::max_depth, 
+    ID::hole_dia, ID::hole_num, ID::prev_hole_num, ID::prev_dt, 
+    ID::sender_id, ID::sensor_id, ID::target_depth, ID::max_depth,
     ID::block_num, ID::contract_num, ID::csv_filename
 };
 
 #define HTML_FILENAME       "/index.htm"
 
-#define INPUTCSV_FILENAME   "/currentCSV.txt"
-
 // SQL fields //
 #define NUM_SQL_FIELDS      17
-const char SQL_FIELDS[][20] = {
+const char* SQL_FIELDS[] = {
     "SenderID", "SensorID",
     "Lat", "Longi",
     "HoleDiameter", "HoleNumber",
@@ -84,7 +104,7 @@ const int SQL_FIELD_IDS[] = {
 // csv fields //
 #define NUM_CSV_FIELDS  14
 
-const char CSV_FIELDS[][20] = {
+const char* CSV_FIELDS[] = {
     "Send ID", "Sensor ID", "Lattitude", "Longitude",
     "Event ID", "Event Type", "Sensor Status", 
     "Date and Time", "Severity", "Depth", "Torque", 
@@ -101,7 +121,7 @@ const int CSV_FIELD_IDS[] = {
 // email fields //
 #define NUM_EMAIL_FIELDS    14
 
-const char EMAIL_FIELDS[][20] = {
+const char* EMAIL_FIELDS[] = {
     "EventID", "Event type", "Description", "Severity", 
     "\nSenderID", "SensorID", "Starting time", 
     "\nHole Nnmber", "Resource path", "", "Intended depth",
@@ -117,7 +137,7 @@ const int EMAIL_FIELD_IDS[] = {
 
 // http req fields //
 #define NUM_HTTP_FIELDS     6
-const char HTTP_FIELDS[][20] = {
+const char* HTTP_FIELDS[] = {
     "input1", "input2", "input3", 
     "input4", "input4", "input5", "input6", 
 };
@@ -129,7 +149,7 @@ const int HTTP_FIELD_IDS[] = {
 
 // json fields //
 #define NUM_JSON_FIELDS     15
-const char JSON_FIELDS[][20] = {
+const char* JSON_FIELDS[] = {
     "SenderID", "SensorID", "ResourcePath", "ResourcePath", 
     "Holediameter", "HoleNumber", "EventID", 
     "sensorstatus", "Time", "severity", 
@@ -142,13 +162,6 @@ const int JSON_FIELD_IDS[] = {
     ID::sensor_status, ID::datetime, ID::severity, 
     ID::depth, ID::torque, ID::incl_x, ID::incl_y, ID::description
 };
-
-// CAN params //
-#define CAN_RX_QUEUE_SIZE   151
-#define CAN_RXPIN           GPIO_NUM_4
-#define CAN_TXPIN           GPIO_NUM_5
-
-#define CAN_TIMEOUT     10 // seconds
 
 // CAN IDs //
 #define CANID_INCLINE   "18050710"

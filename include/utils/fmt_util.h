@@ -7,8 +7,14 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
-String br = "<br/>";
-String nl = "\n";
+char br[] = "<br/>";
+char nl[] = "\n";
+
+// void strncat_fast(char* dest, char* src, char* last, size_t n) {
+//     while (*dest) dest++;
+//     while (*dest++ = *src++);
+//     return --dest;
+// }
 
 DateTime tm2DateTime(struct tm t) {
     return DateTime(t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
@@ -18,58 +24,61 @@ void ip2String(IPAddress ip, char* cbuff) {
     sprintf(cbuff, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 }
 
-String format_sql_msg(const String db, const String table, const int num_fields, const String fields[], const int tgt_ids[], String data[]) {
-    String msg;
-    String start = "INSERT INTO " + db + "." + table; //latti3,longi3
-    String fields_string = "";
-    String data_string = "";
-    for (int i = 0; i < num_fields - 1; i++) {
-        fields_string += fields[i] + ",";
-        data_string += "'" + data[tgt_ids[i]] + "',";
-    }
-    fields_string += fields[num_fields - 1];
-    data_string += "'" + data[tgt_ids[num_fields - 1]] + "'";
-    msg = start + " (" + fields_string + ") VALUES (" + data_string + ");";
-    return msg;
-}
+void format_sql_msg(const char* db, const char* table, 
+                    const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50], 
+                    const int cbuff_size, char* cbuff) {
+    int cx;
 
-String format_csv_msg(int num_fields, const String fields[], const int tgt_ids[], String data[]) {
-    String msg = "";
-    for (int i = 0; i < num_fields - 1; i++) {
-        msg += data[tgt_ids[i]] + ",";
+    cx = snprintf(cbuff, cbuff_size, "INSERT INTO %s.%s (%s", db, table, fields[0]);
+
+    for (int i = 1; i < num_fields; i++) {
+        cx += snprintf(cbuff+cx, cbuff_size-cx, ",%s", fields[i]);
     }
 
-    msg += data[tgt_ids[num_fields - 1]] + nl;
+    cx += snprintf(cbuff+cx, cbuff_size-cx, ") VALUES ('%s'", data[tgt_ids[0]]);
 
-    return msg;
-}
-
-String format_csv_header(int num_fields, const String fields[]) {
-    String msg = "";
-    for (int i = 0; i < num_fields - 1; i++) {
-        msg += fields[i] + ",";
+    for (int i = 1; i < num_fields; i++) {
+        cx += snprintf(cbuff+cx, cbuff_size-cx, ",'%s'", data[tgt_ids[i]]);
     }
-    msg += fields[num_fields - 1] + nl;
-    return msg;
+    strncpy(cbuff+cx, ");", cbuff_size-cx);
 }
 
-String format_email_msg(int num_fields, const String fields[], const int tgt_ids[], String data[]) {
-    String msg = "";
+void format_csv_msg(const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50], 
+                    const int cbuff_size, char* cbuff) {
+    int cx = 0;
+    for (int i = 0; i < num_fields - 1; i++) {
+        cx += snprintf(cbuff + cx, cbuff_size - cx, "%s,", data[tgt_ids[i]]);
+    }
+
+    cx += snprintf(cbuff + cx, cbuff_size - cx, "%s\n", data[tgt_ids[num_fields - 1]]);
+}
+
+void format_csv_header(int num_fields, const char* fields[], const int cbuff_size, char* cbuff) {
+    int cx = 0;
+    for (int i = 0; i < num_fields - 1; i++) {
+        cx += snprintf(cbuff + cx, cbuff_size - cx, "%s,", fields[i]);
+    }
+
+    cx += snprintf(cbuff + cx, cbuff_size - cx, "%s\n", fields[num_fields - 1]);
+}
+
+void format_email_msg(const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50],
+                      const int cbuff_size, char* cbuff) {
     
+    int cx = 0;
     for (int i = 0; i < 8; i++) {
-        msg += fields[i] + ": " + data[tgt_ids[i]] + br;
+        cx += snprintf(cbuff + cx, cbuff_size - cx, "%s: %s<br/>", fields[i], data[tgt_ids[i]]);
     }
 
-    msg += fields[8] + ": " + data[tgt_ids[8]] + ", " + data[tgt_ids[9]] + br; // lat and long has a special format
-
+    cx += snprintf(cbuff + cx, cbuff_size - cx, "%s: %s, %s<br/<", fields[8], data[tgt_ids[8]], data[tgt_ids[9]]); // lat and lon special format
+    
     for (int i = 10; i < num_fields; i++) {
-        msg += fields[i] + ": " + data[tgt_ids[i]] + br;
+        cx += snprintf(cbuff + cx, cbuff_size - cx, "%s: %s<br/>", fields[i], data[tgt_ids[i]]);
     }
-
-    return msg;
 }
 
-String format_json_msg(int num_fields, const String fields[], const int tgt_ids[], String data[]) {
+void format_json_msg(int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50], //TODO
+                     const int cbuff_size, char* cbuff) {
     StaticJsonDocument<800> doc;
     String msg;
 
@@ -89,8 +98,7 @@ String format_json_msg(int num_fields, const String fields[], const int tgt_ids[
 
     serializeJsonPretty(doc, msg);
 
-    return msg;
+    msg.toCharArray(cbuff, cbuff_size);
 }
-
 
 #endif

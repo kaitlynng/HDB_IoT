@@ -33,6 +33,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // constants
 const TimeSpan update_interval = TimeSpan(UPDATE_RATE);
+char* datetime_fmt = strdup("YYYY-MM-DD_hh-mm-ss");
 
 // objects
 CanWrapper can_wrapper(CAN_TXPIN, CAN_RXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
@@ -45,22 +46,25 @@ MqttWrapper mqtt_wrapper(client, MQTT_SERVER, MQTT_SERVER_PORT, MQTT_CLIENT);
 // variables
 String can_data[3]; // {can_id, msb, lsb}
 double gps_data[2]; // {lat, longi}
-const int cbuff_size = 800;
-char cbuff[cbuff_size];
 
-char ip_cbuff[20];
+const int cbuff_size = 800;
+char cbuff[cbuff_size] = "";
 
 char data_c[ID::LAST][50];
 uint32_t data_i[ID::LAST];
 float data_f[ID::LAST]; 
 
-char filenames_arr[ID::LAST][20];
+char filenames_arr[ID::LAST][FILENAME_SIZE];
 
 DateTime dt_now;
 DateTime dt_next;
 
+//DEBUG
+long millis_now;
+long millis_next;
+
 void store(int id, char* val) {
-  strcpy(data_c[id], val);
+  strncpy(data_c[id], val, 50);
   if (filenames_arr[id][0] != '\0') {
     sd_wrapper.write_file(filenames_arr[id], val);
   }
@@ -100,7 +104,9 @@ String processor(const String &var) { // TODO
       return data_c[ID::hole_dia];
 
   } else if (var == "input2") {
-      store(ID::hole_num, var);
+      char var_c[50];
+      var.toCharArray(var_c, 50);
+      store(ID::hole_num, var_c);
       return data_c[ID::hole_num];
 
   } else if (var == "Holenumber") {
@@ -124,15 +130,15 @@ String processor(const String &var) { // TODO
 }
 
 void parse_can(String can_id, String msb, String lsb) {
-  char* msb_c;
-  char* lsb_c;
+  char msb_c[50];
+  char lsb_c[50];
 
   msb.toCharArray(msb_c, 16);
   lsb.toCharArray(lsb_c, 16);
 
   if (can_id == CANID_INCLINE) {
-    store(ID::incl_x, lsb);
-    store(ID::incl_y, msb);
+    store(ID::incl_x, lsb_c);
+    store(ID::incl_y, msb_c);
     
   } else if (can_id == CANID_DEPTH) {
     store(ID::depth, lsb.toFloat());
@@ -153,7 +159,7 @@ void WIFI_connect() {
   WiFi.begin(NETWORK_SSID, NETWORK_PASS);
 
   // try to connect every 0.1s for wifi connection timeout
-  while (millis() - startTime < NETWORK_TIMEOUT) {
+  while (millis() - startTime < NETWORK_TIMEOUT * 1000) {
     if (WiFi.status() == WL_CONNECTED) break;
     delay(100);
     Serial.print(".");
@@ -163,13 +169,13 @@ void WIFI_connect() {
   {
     case 6 : Serial.print("Wifi not connected restarting esp"); ESP.restart(); break;
     case 3 : Serial.println("Wifi connected continue with ops"); break;
-    case 1 : Serial.println("No wifi connected"); ESP.restart(); break; //append_file(SD, "/error_log", "No wifi \n");
+    case 1 : Serial.println("No wifi connected"); break; //ESP.restart(); break; //append_file(SD, "/error_log", "No wifi \n");
     default : Serial.print("Unknown code: "); Serial.println(WiFi.status());
   }
 }
 
 void sync_rtc_time() {
-  Serial.print("Connecting to RTC...");
+  //Serial.print("Connecting to RTC...");
   long stamp = millis();
   while (!rtc.begin() && millis() - stamp < RTC_TIMEOUT * 1000) {
     delay(10);
@@ -180,7 +186,7 @@ void sync_rtc_time() {
     return;
   }
   
-  Serial.println("OK. Adjusting time...");
+  //Serial.println("OK. Adjusting time...");
 
   if (WiFi.status() != 3) {
     Serial.println("No WiFi connection! Unable to adjust time.");
@@ -196,7 +202,7 @@ void sync_rtc_time() {
   }
 
   rtc.adjust(tm2DateTime(t));
-  Serial.println("Successfully synced RTC to NTP!");
+  //Serial.println("Successfully synced RTC to NTP!");
 }
 
 void setup() {
@@ -216,8 +222,17 @@ void setup() {
   esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
   Serial.println("Configured all RTC Peripherals to be powered down in sleep");  
 
+  // initialise with default values
+  for (int i = 0; i < ID::LAST; i++) {
+    char* default_value = strdup(DEFAULT_VALUES[i]);
+    store(i, default_value);
+    free(default_value);
+  }
+
   //connect to WiFi
   WIFI_connect();
+
+  char ip_cbuff[20];
   ip2String(WiFi.localIP(), ip_cbuff);
   store(ID::ip_address, ip_cbuff); // probably need error handling
 
@@ -229,32 +244,23 @@ void setup() {
   email_wrapper.setup(); //doesn't do anything, for standardisation
   mqtt_wrapper.setup();
 
-  Serial.println("Test1");
-
   for (int i = 0; i < NUM_STORAGE_FILENAMES; i++) {
-    if (i < ID::LAST) strcpy(filenames_arr[STORAGE_FILENAME_IDS[i]], STORAGE_FILENAMES[i]);
+    if (i < ID::LAST) strncpy(filenames_arr[STORAGE_FILENAME_IDS[i]], STORAGE_FILENAMES[i], FILENAME_SIZE);
   }
-  Serial.println("Test2");
 
   // initialise data values from SD card
   for (int i = 0; i < NUM_STORAGE_FILENAMES; i++) {
-    data_c[STORAGE_FILENAME_IDS[i]] = sd_wrapper.read_file(STORAGE_FILENAMES[i]);
+    char* filename_c = strdup(STORAGE_FILENAMES[i]);
+    sd_wrapper.read_file(filename_c, 50, data_c[STORAGE_FILENAME_IDS[i]]);
+    free(filename_c);
   }
-  Serial.println("Test3");
 
   //for max_depth, need the float value
-  store(ID::max_depth, data_c[ID::max_depth].toFloat());
-
-  Serial.println("Test4");
+  
+  store(ID::max_depth, (float)atof(data_c[ID::max_depth]));
 
   //Setup time synchronisation
   sync_rtc_time();
-
-  Serial.println("Test5");
-  
-  Serial.println("Mirror Demo - ESP32-Arduino-CAN");
-  display.begin(SSD1306_SWITCHCAPVCC, 0x3c);
-  display.clearDisplay();
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
     request->send(SD, HTML_FILENAME, "text/html", processor);
@@ -265,9 +271,11 @@ void setup() {
   });
 
   server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    char value_c[50];
     for (int i = 0; i < NUM_HTTP_FIELDS; i++) {
       if (request->hasParam(HTTP_FIELDS[i])) {
-        store(HTTP_FIELD_IDS[i], request->getParam(HTTP_FIELDS[i])->value());
+        request->getParam(HTTP_FIELDS[i])->value().toCharArray(value_c, 50);
+        store(HTTP_FIELD_IDS[i], value_c);
         break;
       }
     }
@@ -277,17 +285,25 @@ void setup() {
   // Start server
   server.begin();
 
+  Serial.println("Mirror Demo - ESP32-Arduino-CAN");
+  display.begin(SSD1306_SWITCHCAPVCC, 0x3c);
+  display.clearDisplay();
+
   dt_now = rtc.now();
   dt_next = rtc.now();
 
+  //DEBUG
+  millis_now = millis();
+  millis_next = millis();
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   sync_rtc_time();
-  dt_now = rtc.now();
-  store(ID::datetime, dt_now.toString((char*)"YYYY-MM-DD_hh-mm-ss")); //check cast!
+  dt_now = rtc.now(); // what if unable to connect to rtc?
+  millis_now = millis();
+  store(ID::datetime, dt_now.toString(datetime_fmt)); //check cast!
 
   //update all data values
   if (can_wrapper.poll(can_data)) {
@@ -299,35 +315,44 @@ void loop() {
     store(ID::longi, (float)gps_data[1]);
   }
 
-  if (dt_now > dt_next) {
-    // Send data
-    String sql_msg = format_sql_msg(DEFAULT_DB, DEFAULT_TABLE, NUM_SQL_FIELDS, SQL_FIELDS, SQL_FIELD_IDS, data_c);
-    sql_msg.toCharArray(cbuff, cbuff_size);
-    sql_wrapper.insert(cbuff);
-    memset(cbuff, 0, cbuff_size);
+  //if (dt_now > dt_next) {
+  if (millis_now > millis_next) {
+    Serial.println("Data: ");
+    for (int i = 0; i < ID::LAST; i++) {
+      Serial.println(data_c[i]);
+    }
+    Serial.println("....................................");
 
-    String csv_msg = format_csv_msg(NUM_CSV_FIELDS, CSV_FIELDS, CSV_FIELD_IDS, data_c);
-    sd_wrapper.append_file(data_c[ID::csv_filename], csv_msg);
+    format_sql_msg(DEFAULT_DB, DEFAULT_TABLE, NUM_SQL_FIELDS, SQL_FIELDS, SQL_FIELD_IDS, data_c, cbuff_size, cbuff);
+    Serial.println(cbuff);
+    //sql_wrapper.insert(cbuff);
+    //memset(cbuff, 0, cbuff_size);
 
-    String json_msg = format_json_msg(NUM_JSON_FIELDS, JSON_FIELDS, JSON_FIELD_IDS, data_c);
-    json_msg.toCharArray(cbuff, cbuff_size);
-    mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
-    memset(cbuff, 0, cbuff_size);
+    format_csv_msg(NUM_CSV_FIELDS, CSV_FIELDS, CSV_FIELD_IDS, data_c, cbuff_size, cbuff);
+    Serial.println(cbuff);
+    //sd_wrapper.append_file(data_c[ID::csv_filename], cbuff);
+    //memset(cbuff, 0, cbuff_size);
 
-    dt_next = dt_now + update_interval;
+    format_json_msg(NUM_JSON_FIELDS, JSON_FIELDS, JSON_FIELD_IDS, data_c, cbuff_size, cbuff);
+    Serial.println(cbuff);
+    //mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
+    //memset(cbuff, 0, cbuff_size);
+
+    dt_next = dt_now + update_interval; 
+    millis_next = millis_now + 10 * 1000;
   }
 
-  if (data_c[ID::prev_hole_num] != data_c[ID::hole_num]) {
+  //if (strcmp(data_c[ID::prev_hole_num], data_c[ID::hole_num]) != 0) {
+  if (true) {
     //hole changed, send mail
-    String email_subject = CONTRACT_NAME + '/' + 
-                          data_c[ID::contract_num] + "/" +
-                          data_c[ID::hole_num];
-
-    String email_msg = format_email_msg(NUM_EMAIL_FIELDS, EMAIL_FIELDS, EMAIL_FIELD_IDS, data_c);
-    
-    email_wrapper.send(EMAIL_SENDER_NAME, EMAIL_SENDER_ACCOUNT, EMAIL_SENDER_PASS, 
-                      EMAIL_NUM_RECIPIENTS, EMAIL_RECIPIENTS,
-                      email_subject, email_msg, data_c[ID::csv_filename]);
+    char email_subject[100];
+    snprintf(email_subject, 100, "%s/%s/%s", CONTRACT_NAME, data_c[ID::contract_num], data_c[ID::prev_hole_num]);
+    format_email_msg(NUM_EMAIL_FIELDS, EMAIL_FIELDS, EMAIL_FIELD_IDS, data_c, cbuff_size, cbuff);
+    Serial.println(email_subject);
+    Serial.println(cbuff);
+    //email_wrapper.send(EMAIL_SENDER_NAME, EMAIL_SENDER_ACCOUNT, EMAIL_SENDER_PASS, 
+    //                  EMAIL_NUM_RECIPIENTS, EMAIL_RECIPIENTS,
+    //                  email_subject, cbuff, data_c[ID::csv_filename]);
 
     //update previous values to current value
     store(ID::prev_hole_num, data_c[ID::hole_num]);
@@ -337,13 +362,16 @@ void loop() {
     store(ID::max_depth, float(0.0));
 
     //update csv filename
-    String new_csv_filename = "/" + data_c[ID::event_title] + "_" + data_c[ID::hole_num] + "_" + data_c[ID::datetime] + ".csv";
+    char new_csv_filename[100];
+    snprintf(new_csv_filename, 100, "/%s_%s_%s.csv", data_c[ID::event_title], data_c[ID::hole_num], data_c[ID::datetime]);
+    Serial.println(new_csv_filename);
     store(ID::csv_filename, new_csv_filename);
 
     //create new csv file
-    String csv_header = format_csv_header(NUM_CSV_FIELDS, CSV_FIELDS);
-    sd_wrapper.write_file(data_c[ID::csv_filename], csv_header);
+    format_csv_header(NUM_CSV_FIELDS, CSV_FIELDS, cbuff_size, cbuff);
+    Serial.println(cbuff);
+    //sd_wrapper.write_file(data_c[ID::csv_filename], csv_header_cbuff);
 
   } //interrupt?
-
 }
+
