@@ -29,7 +29,7 @@ public:
         p_filter.ACR0 = 0xC0;
         p_filter.ACR1 = 0x28;
         p_filter.ACR2 = 0x38;
-        p_filter.ACR3 = 0x85;
+        p_filter.ACR3 = 0x80;
 
         p_filter.AMR0 = 0x00;
         p_filter.AMR1 = 0x00;
