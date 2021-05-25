@@ -5,6 +5,7 @@
 #include <time.h>  //time library
 #include <Wire.h> //communicate with i2c devices
 #include <WiFi.h> //wifi library from the ESP32 
+// #include <SoftwareSerial.h>
 
 #include <RTClib.h> //a fork of Jeelab's RTC library for Arduino
 
@@ -33,15 +34,20 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
 // constants
 const TimeSpan update_interval = TimeSpan(UPDATE_RATE);
+const TimeSpan ntp_interval = TimeSpan(RTC_SYNC_RATE);
+const TimeSpan gps_interval = TimeSpan(GPS_TIMEOUT);
+const TimeSpan can_interval = TimeSpan(CAN_TIMEOUT);
 char* datetime_fmt = strdup("YYYY-MM-DD_hh-mm-ss");
+char* status_online = strdup("online");
+char* status_offline = strdup("offline");
 
 // objects
-CanWrapper can_wrapper(CAN_TXPIN, CAN_RXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
-GpsWrapper gps_wrapper(GPS_TXPIN, GPS_RXPIN, GPS_BAUDRATE);
+CanWrapper can_wrapper(CAN_RXPIN, CAN_TXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
+GpsWrapper gps_wrapper(GPS_RXPIN, GPS_TXPIN, GPS_BAUDRATE);
 SdWrapper sd_wrapper(SD_CS);
 
 SqlWrapper sql_wrapper(MYSQL_SERVER_ADDRESS, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
-MqttWrapper mqtt_wrapper(client, MQTT_SERVER, MQTT_SERVER_PORT, MQTT_CLIENT, MQTT_FLAG);
+MqttWrapper mqtt_wrapper(client, MQTT_SERVER, MQTT_SERVER_PORT, MQTT_CLIENT, MQTT_TIMEOUT, MQTT_FLAG);
 EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT, EMAIL_FLAG);
 
 // variables
@@ -54,15 +60,22 @@ char cbuff[cbuff_size] = "";
 char data_c[ID::LAST][50];
 uint32_t data_i[ID::LAST];
 float data_f[ID::LAST]; 
+bool data_updated[ID::LAST];
 
 char filenames_arr[ID::LAST][FILENAME_SIZE];
 
 DateTime dt_now;
 DateTime dt_next;
 
-//DEBUG
-long millis_now;
-long millis_next;
+DateTime last_can_update;
+DateTime last_gps_update;
+
+DateTime next_ntp_update;
+DateTime next_can_update;
+DateTime next_gps_update;
+
+int is_sensor_online = 0;
+int is_gps_online = 0;
 
 void store(int id, char* val) {
   strncpy(data_c[id], val, 50);
@@ -81,6 +94,12 @@ void store(int id, int val) {
 void store(int id, float val) {
   data_f[id] = val;
   sprintf(data_c[id], "%f", val);
+}
+
+void reset_flags() {
+  for (int i = 0; i < ID::LAST; i++) {
+    data_updated[i] = false;
+  }
 }
 
 void print_wakeup_reason() {
@@ -140,18 +159,33 @@ void parse_can(String can_id, String msb, String lsb) {
   lsb.toCharArray(lsb_c, 16);
 
   if (can_id == CANID_INCLINE) {
-    store(ID::incl_x, lsb_c);
-    store(ID::incl_y, msb_c);
-    
-  } else if (can_id == CANID_DEPTH) {
-    store(ID::depth, lsb.toFloat());
-    if (data_f[ID::depth] > data_f[ID::max_depth]) {
-      store(ID::max_depth, data_f[ID::depth]);
-      sd_wrapper.write_file(filenames_arr[ID::max_depth], data_c[ID::max_depth]);
+    if (!data_updated[ID::incl_x]) {
+      store(ID::incl_x, lsb_c);
+      data_updated[ID::incl_x] = true;
     }
+    if (!data_updated[ID::incl_y]) {
+      store(ID::incl_y, msb_c);
+      data_updated[ID::incl_y] = true;
+    }
+    is_sensor_online = 1;
+     
+  } else if (can_id == CANID_DEPTH) {
+    if (!data_updated[ID::depth]) {       // only take the lastest depth value...
+      store(ID::depth, lsb.toFloat());
+      data_updated[ID::depth] = true;
+    }
+
+    if (lsb.toFloat() > data_f[ID::max_depth]) {   // but pick the max depth value of everything
+      store(ID::max_depth, data_f[ID::depth]);
+    }
+    is_sensor_online = 1;
     
   } else if (can_id == CANID_TORQUE) {
-    store(ID::torque, float((lsb.toFloat() / 32.0) * 205.0));
+    if (!data_updated[ID::torque]) {
+      store(ID::torque, float((lsb.toFloat() / 32.0) * 205.0));
+      data_updated[ID::torque] = true;
+    }
+    is_sensor_online = 1;
   }
 }
 
@@ -170,15 +204,14 @@ void WIFI_connect() {
 
   switch (WiFi.status()) 
   {
-    case 6 : Serial.print("Wifi not connected restarting esp"); ESP.restart(); break;
-    case 3 : Serial.println("Wifi connected continue with ops"); break;
+    case 6 : Serial.print("Wifi not connected!"); break;
+    case 3 : Serial.println("Wifi connected! Continue with ops"); break;
     case 1 : Serial.println("No wifi connected"); break; //ESP.restart(); break; //append_file(SD, "/error_log", "No wifi \n");
     default : Serial.print("Unknown code: "); Serial.println(WiFi.status());
   }
 }
 
-void sync_rtc_time() {
-  //Serial.print("Connecting to RTC...");
+bool connect_rtc() {
   long stamp = millis();
   while (!rtc.begin() && millis() - stamp < RTC_TIMEOUT * 1000) {
     delay(10);
@@ -186,10 +219,14 @@ void sync_rtc_time() {
 
   if (!rtc.begin()) {
     Serial.println("WARNING: Couldn't connect to RTC.");
-    return;
+    return false;
   }
-  
-  //Serial.println("OK. Adjusting time...");
+
+  return true;
+}
+
+void sync_rtc_time() {
+  Serial.print("Adjusting time...");
 
   if (WiFi.status() != 3) {
     Serial.println("No WiFi connection! Unable to adjust time.");
@@ -200,12 +237,12 @@ void sync_rtc_time() {
   
   struct tm t;
   if (!getLocalTime(&t)) {
-    Serial.println("Failed to get time info from ntp server.");
+    Serial.println("Failed to get time info from ntp server. RTC is not synced!");
     return;
   }
 
   rtc.adjust(tm2DateTime(t));
-  //Serial.println("Successfully synced RTC to NTP!");
+  Serial.println("Successfully synced RTC to NTP!");
 }
 
 void setup() {
@@ -230,6 +267,7 @@ void setup() {
     char* default_value = strdup(DEFAULT_VALUES[i]);
     store(i, default_value);
     free(default_value);
+    data_updated[i] = false;
   }
 
   //connect to WiFi
@@ -261,15 +299,24 @@ void setup() {
   //for max_depth, need the float value
   store(ID::max_depth, (float)atof(data_c[ID::max_depth]));
 
+  reset_flags();
+
   //Setup time synchronisation
+  Serial.print("Connecting to RTC....");
+  if (!connect_rtc()) {
+    Serial.println("FATAL ERROR: UNABLE TO CONNECT TO RTC. Restarting ESP32...");
+    ESP.restart();
+  }
+  Serial.println("OK.");
+
   sync_rtc_time();
 
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SD, HTML_FILENAME, "text/html", processor);
+    request->send(SD, HTML_FILENAME, "text/html", false, processor);
   });
 
   server.on("/sendemail", HTTP_GET, [](AsyncWebServerRequest *request) {
-    request->send(SD, HTML_FILENAME, "text/html", processor);
+    request->send(SD, HTML_FILENAME, "text/html", false, processor);
   });
 
   server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
@@ -281,7 +328,7 @@ void setup() {
         break;
       }
     }
-    request->send(SD, HTML_FILENAME, "text/html", processor);
+    request->send(SD, HTML_FILENAME, "text/html", false, processor);
   });
 
   // Start server
@@ -294,31 +341,55 @@ void setup() {
   dt_now = rtc.now();
   dt_next = rtc.now();
 
-  //DEBUG
-  millis_now = millis();
-  millis_next = millis();
-
+  next_ntp_update = rtc.now();
+  last_can_update = rtc.now();
+  last_gps_update = rtc.now();
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  sync_rtc_time();
-  dt_now = rtc.now(); // what if unable to connect to rtc?
-  millis_now = millis();
+  if (!connect_rtc()) {
+    Serial.println("FATAL ERROR: UNABLE TO CONNECT TO RTC!");
+    ESP.restart();
+  }
+
+  if (rtc.now() > next_ntp_update) {
+    sync_rtc_time();
+    next_ntp_update = rtc.now() + ntp_interval;
+  }
+
+  dt_now = rtc.now();
+  
   store(ID::datetime, dt_now.toString(datetime_fmt)); //check cast!
 
   //update all data values
-  if (can_wrapper.poll(can_data)) {
-    parse_can(can_data[0], can_data[1], can_data[2]);
+  for (int i = 0; i < can_wrapper.get_num_frames_in_queue(); i++) {
+    if (can_wrapper.poll(can_data)) {
+      parse_can(can_data[0], can_data[1], can_data[2]);
+    }
   }
-  
+
+  if (is_sensor_online) {
+    last_can_update = dt_now;
+    store(ID::sensor_status, status_online);
+  } else if (dt_now > last_can_update + can_interval) {
+    store(ID::sensor_status, status_offline);
+  }
+
   if (gps_wrapper.poll(gps_data)) {
+    is_gps_online = 1;
     store(ID::lat, (float)gps_data[0]);
     store(ID::longi, (float)gps_data[1]);
   }
 
-  //if (dt_now > dt_next) {
-  if (millis_now > millis_next) {
+  if (is_gps_online) {
+    last_gps_update = dt_now;
+    store(ID::gps_status, status_online);
+  } else if (dt_now > last_gps_update + gps_interval) {
+    store(ID::gps_status, status_offline);
+  }
+
+  if (dt_now > dt_next) {
     Serial.println("Data: ");
     for (int i = 0; i < ID::LAST; i++) {
       Serial.println(data_c[i]);
@@ -327,25 +398,20 @@ void loop() {
 
     format_sql_msg(DEFAULT_DB, DEFAULT_TABLE, NUM_SQL_FIELDS, SQL_FIELDS, SQL_FIELD_IDS, data_c, cbuff_size, cbuff);
     Serial.println(cbuff);
-    //sql_wrapper.insert(cbuff);
-    //memset(cbuff, 0, cbuff_size);
+    sql_wrapper.insert(cbuff);
 
     format_csv_msg(NUM_CSV_FIELDS, CSV_FIELDS, CSV_FIELD_IDS, data_c, cbuff_size, cbuff);
     Serial.println(cbuff);
-    //sd_wrapper.append_file(data_c[ID::csv_filename], cbuff);
-    //memset(cbuff, 0, cbuff_size);
-
+    sd_wrapper.append_file(data_c[ID::csv_filename], cbuff);
+    
     format_json_msg(NUM_JSON_FIELDS, JSON_FIELDS, JSON_FIELD_IDS, data_c, cbuff_size, cbuff);
     Serial.println(cbuff);
-    //mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
-    //memset(cbuff, 0, cbuff_size);
+    mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
 
     dt_next = dt_now + update_interval; 
-    millis_next = millis_now + 10 * 1000;
   }
 
-  //if (strcmp(data_c[ID::prev_hole_num], data_c[ID::hole_num]) != 0) {
-  if (true) {
+  if (strcmp(data_c[ID::prev_hole_num], data_c[ID::hole_num]) != 0) {
     //hole changed, send mail
     char email_subject[100];
     snprintf(email_subject, 100, "%s/%s/%s", CONTRACT_NAME, data_c[ID::contract_num], data_c[ID::prev_hole_num]);
@@ -381,8 +447,11 @@ void loop() {
     //create new csv file
     format_csv_header(NUM_CSV_FIELDS, CSV_FIELDS, cbuff_size, cbuff);
     Serial.println(cbuff);
-    //sd_wrapper.write_file(data_c[ID::csv_filename], csv_header_cbuff);
+    sd_wrapper.write_file(data_c[ID::csv_filename], cbuff);
 
-  } //interrupt?
+  }
+
+  reset_flags();
 }
+
 

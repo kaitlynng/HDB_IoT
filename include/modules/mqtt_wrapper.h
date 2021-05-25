@@ -12,9 +12,6 @@ public:
     MqttWrapper(WiFiClient &client, const char* server_name, int server_port, const char* client_name,  
                 int timeout = 1, bool flag = true)
     : m_server_port(server_port), m_timeout(timeout), active_flag(flag) {
-        if (!active_flag) {
-            Serial.println("WARNING: MQTT is inactivated!");
-        }
         m_server_name = strdup(server_name); // convert const char* to char* for API calls
         m_client_name = strdup(client_name);
 
@@ -26,6 +23,7 @@ public:
 
     void setup() {
         if (!active_flag) {
+            Serial.println("WARNING: MQTT is inactivated!");
             return;
         }
         mqtt_client.setServer(m_server_name, m_server_port);
@@ -96,7 +94,7 @@ public:
         if (mqtt_client.publish(topic, data)) {
             Serial.println("Message published");
         }
-        else{
+        else {
             Serial.println("WARNING: Message publish failed");
         }
     }
@@ -124,7 +122,7 @@ private:
     WiFiClient client;
     PubSubClient mqtt_client;
 
-    bool active_flag = true;
+    bool active_flag;
 };
 
 #endif

@@ -4,8 +4,8 @@
 #include <Arduino.h>
 
 // network credentials
-#define NETWORK_SSID    "Ng-fam-weefee-extraordinaire" // "AIDrivers SG - 2.4G" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
-#define NETWORK_PASS    "tecknam67941827" // "@1Drivers75" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
+#define NETWORK_SSID    "AIDrivers SG - 2.4G" // "Ng-fam-weefee-extraordinaire" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
+#define NETWORK_PASS    "@1Drivers75" // "tecknam67941827"  //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
 
 // MQTT server
 #define MQTT_SERVER         "2.tcp.ngrok.io"
@@ -20,11 +20,11 @@ Production: ssl://192.168.8.35:9884
 UAT: ssl://192.168.8.38:9884 
  */
 
-// adafruit IO server (CURRENTLY NOT USED)
-#define AIO_SERVER      "io.adafruit.com"
-#define AIO_SERVERPORT  1883                   // use 8883 for SSL
-#define AIO_USERNAME    "Estherdragon"
-#define AIO_KEY         "aio_sHiz93It6x7SCfc6Jeic0yg2yxFp"
+// // adafruit IO server (CURRENTLY NOT USED)
+// #define AIO_SERVER      "io.adafruit.com"
+// #define AIO_SERVERPORT  1883                   // use 8883 for SSL
+// #define AIO_USERNAME    "Estherdragon"
+// #define AIO_KEY         "aio_sHiz93It6x7SCfc6Jeic0yg2yxFp"
 
 // SQL credentials
 #define MYSQL_USER      "leo"
@@ -56,8 +56,8 @@ const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com"}; //aidrivers.demo@gm
 #define UPDATE_RATE     10 //seconds
 
 #define SQL_FLAG        true
-#define MQTT_FLAG       true
-#define EMAIL_FLAG      false
+#define MQTT_FLAG       false
+#define EMAIL_FLAG      true
 
 
 #endif //USER_CONFIG_H_

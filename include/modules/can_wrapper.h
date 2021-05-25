@@ -5,11 +5,13 @@
 #include <ESP32CAN.h>
 #include <CAN_config.h>
 
+CAN_device_t CAN_cfg;                // CAN Config
+
 class CanWrapper 
 {
 public:
-    CanWrapper(const gpio_num_t tx_pin, const gpio_num_t rx_pin, const int rx_queue_size = 151, const CAN_speed_t speed = CAN_SPEED_250KBPS)
-    : m_tx_pin(tx_pin), m_rx_pin(rx_pin), m_rx_queue_size(rx_queue_size), m_speed(speed) {}
+    CanWrapper(const gpio_num_t rx_pin, const gpio_num_t tx_pin, const int rx_queue_size = 151, const CAN_speed_t speed = CAN_SPEED_250KBPS)
+    : m_rx_pin(rx_pin), m_tx_pin(tx_pin), m_rx_queue_size(rx_queue_size), m_speed(speed) {}
 
     CanWrapper() = delete;
     ~CanWrapper() {}
@@ -27,7 +29,11 @@ public:
  
     }
 
-    void poll(String data[3]) {
+    int get_num_frames_in_queue() {
+        return uxQueueMessagesWaiting(CAN_cfg.rx_queue);
+    }
+
+    bool poll(String data[3]) {
         String can_id;           //stores CANID
 
         String upper_bytes ;      //stores upper bytes of can msg
@@ -44,13 +50,17 @@ public:
             float f;
         } CAN_data;
 
-        if(xQueueReceive(CAN_cfg.rx_queue, &rx_frame, 3 * portTICK_PERIOD_MS) == pdTRUE) {
-            if (rx_frame.FIR.B.RTR != CAN_RTR) {
-                can_id = String(rx_frame.MsgID,HEX); //get CANID
-                upper_bytes = String(rx_frame.data.u8[7],HEX)+String(rx_frame.data.u8[6],HEX)+String(rx_frame.data.u8[5],HEX)+String(rx_frame.data.u8[4],HEX); //swaps endian to convert  ie  Data 0xA6 0x23 0xB7 0x3E 0xCC 0xCC 0xCC 0xBF [bfcccccc (-1.6) b7 b6 b5 b4]
-                lower_bytes = String(rx_frame.data.u8[3],HEX)+String(rx_frame.data.u8[2],HEX)+String(rx_frame.data.u8[1],HEX)+String(rx_frame.data.u8[0],HEX); //swaps endians to convert  ie  Data 0xA6 0x23 0xB7 0x3E 0xCC 0xCC 0xCC 0xBF [3eb723a6 (0.36) b3 b2 b1 b0]
-            }
+        if (xQueueReceive(CAN_cfg.rx_queue, &rx_frame, 0) != pdTRUE) { //3 * portTICK_PERIOD_MS
+            return false;
         }
+
+        if (rx_frame.FIR.B.RTR == CAN_RTR) {
+            return false;
+        }
+
+        can_id = String(rx_frame.MsgID,HEX); //get CANID
+        upper_bytes = String(rx_frame.data.u8[7],HEX)+String(rx_frame.data.u8[6],HEX)+String(rx_frame.data.u8[5],HEX)+String(rx_frame.data.u8[4],HEX); //swaps endian to convert  ie  Data 0xA6 0x23 0xB7 0x3E 0xCC 0xCC 0xCC 0xBF [bfcccccc (-1.6) b7 b6 b5 b4]
+        lower_bytes = String(rx_frame.data.u8[3],HEX)+String(rx_frame.data.u8[2],HEX)+String(rx_frame.data.u8[1],HEX)+String(rx_frame.data.u8[0],HEX); //swaps endians to convert  ie  Data 0xA6 0x23 0xB7 0x3E 0xCC 0xCC 0xCC 0xBF [3eb723a6 (0.36) b3 b2 b1 b0]
 
         upper_bytes.toCharArray(modbus_data1, 16);         //stores upper bytes of message tochar array for conversion to floatingpoint in union
         lower_bytes.toCharArray(modbus_data2, 16);       //stores lower bytes of message tochar array for conversion to floatingpoint in union
@@ -71,31 +81,31 @@ public:
         dtostrf(lower, 7, 2, message_data2);
         lsb.concat(message_data2);
 
-
         data[0] = can_id;
         data[1] = msb;
         data[2] = lsb;
+
+        return true;
 
         // respond to sender
         // ESP32Can.CANWriteFrame(&rx_frame);
     }
 
-    float getMsbFloatCanValue(void){
+    float getMsbFloatCanValue() {
         return m_CAN_data.msb_f;
     }
 
-    float getLsbFloatCanValue(void){
+    float getLsbFloatCanValue() {
         return m_CAN_data.lsb_f;
     } 
 
 
 private:
-    gpio_num_t m_tx_pin;
     gpio_num_t m_rx_pin;
+    gpio_num_t m_tx_pin;
     int m_rx_queue_size;
     CAN_speed_t m_speed;
 
-    CAN_device_t CAN_cfg;                // CAN Config
     CAN_frame_t rx_frame;
 
     struct {

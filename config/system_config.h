@@ -9,6 +9,8 @@
 #define DAYLIGHTOFFSET_SEC   0
 #define RTC_TIMEOUT          10 // seconds
 
+#define RTC_SYNC_RATE            30*60 // seconds
+
 // ESP sleep //
 #define FORMAT_LITTLEFS_IF_FAILED   true
 #define INTERRUPT_ATTR              IRAM_ATTR
@@ -20,11 +22,11 @@
 #define NETWORK_TIMEOUT 10 // seconds
 
 // MQTT params //
-#define MQTT_RECON      0
+#define MQTT_TIMEOUT      1 // seconds
 
 
 // CAN params //
-#define CAN_RX_QUEUE_SIZE   200
+#define CAN_RX_QUEUE_SIZE   40
 #define CAN_RXPIN           GPIO_NUM_4
 #define CAN_TXPIN           GPIO_NUM_5
 
@@ -34,6 +36,8 @@
 #define GPS_RXPIN       16
 #define GPS_TXPIN       17
 #define GPS_BAUDRATE    9600
+
+#define GPS_TIMEOUT     60 // seconds 
 
 // OLED params //
 #define SCREEN_WIDTH    128
@@ -45,7 +49,7 @@ enum ID {
     block_num, contract_num, ip_address, 
     severity, description, target_depth, 
     lat, longi, hole_dia, hole_num,
-    sensor_status, datetime,
+    sensor_status, gps_status, datetime,
     depth, torque, incl_x, incl_y, max_depth,
     prev_dt, prev_hole_num,
     csv_filename,
@@ -57,7 +61,7 @@ const char* DEFAULT_VALUES[] = {
     "###", "Contract#", "0.0.0.0", 
     "#", "description", "#.#####", 
     "#.#####", "#.#####", "#.#", "#",
-    "default", "YYYY-MM-DD_hh-mm-ss", 
+    "default", "default", "YYYY-MM-DD_hh-mm-ss", 
     "#.#####", "#.#####", "#.#####", "#.#####", "#.#####", 
     "YYYY-MM-DD_hh-mm-ss", "#",
     "/default.csv"
