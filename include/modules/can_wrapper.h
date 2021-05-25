@@ -23,6 +23,12 @@ public:
         CAN_cfg.rx_queue = xQueueCreate(m_rx_queue_size, sizeof(CAN_frame_t));
         // Init CAN Module
 
+
+        // Configure Filtering for CAN-BUS
+        // CAN_ID we interests in are : "18050710", "18050750", "18050768"
+        // ACR register : 1100 0000 0010 1000 0011 1000 1000 0000
+        // AMR Register : 0000 0000 0000 0000 0000 0011 1100 0011
+        // Relevant information can be found in this link : https://www.nxp.com/docs/en/application-note/AN97076.pdf
         CAN_filter_t p_filter;
         p_filter.FM = Single_Mode;
 
