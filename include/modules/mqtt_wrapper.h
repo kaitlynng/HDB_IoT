@@ -47,7 +47,7 @@ public:
             }
             //Attempt to connect
             if (mqtt_client.connect(m_client_name)) {
-                Serial.println("connected");            }
+                Serial.println("MQTT server Connected");            }
         }
     }
 
