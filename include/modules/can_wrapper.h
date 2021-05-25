@@ -22,6 +22,22 @@ public:
         
         CAN_cfg.rx_queue = xQueueCreate(m_rx_queue_size, sizeof(CAN_frame_t));
         // Init CAN Module
+
+        CAN_filter_t p_filter;
+        p_filter.FM = Single_Mode;
+
+        p_filter.ACR0 = 0xC0;
+        p_filter.ACR1 = 0x28;
+        p_filter.ACR2 = 0x38;
+        p_filter.ACR3 = 0x85;
+
+        p_filter.AMR0 = 0x00;
+        p_filter.AMR1 = 0x00;
+        p_filter.AMR2 = 0x03;
+        p_filter.AMR3 = 0xC3;
+        ESP32Can.CANConfigFilter(&p_filter);
+
+
         ESP32Can.CANInit();
         Serial.println("Can BUS initialized success");
  
