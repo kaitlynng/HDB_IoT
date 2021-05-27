@@ -7,8 +7,6 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
-char br[] = "<br/>";
-char nl[] = "\n";
 
 // void strncat_fast(char* dest, char* src, char* last, size_t n) {
 //     while (*dest) dest++;
@@ -24,7 +22,7 @@ void ip2String(IPAddress ip, char* cbuff) {
     sprintf(cbuff, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 }
 
-void format_sql_msg(const char* db, const char* table, 
+int format_sql_msg(const char* db, const char* table, 
                     const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50], 
                     const int cbuff_size, char* cbuff) {
     int cx;
@@ -40,10 +38,13 @@ void format_sql_msg(const char* db, const char* table,
     for (int i = 1; i < num_fields; i++) {
         cx += snprintf(cbuff+cx, cbuff_size-cx, ",'%s'", data[tgt_ids[i]]);
     }
-    strncpy(cbuff+cx, ");", cbuff_size-cx);
+
+    cx += snprintf(cbuff+cx, cbuff_size-cx, ");");
+
+    return cx;
 }
 
-void format_csv_msg(const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50], 
+int format_csv_msg(const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50], 
                     const int cbuff_size, char* cbuff) {
     int cx = 0;
     for (int i = 0; i < num_fields - 1; i++) {
@@ -51,18 +52,22 @@ void format_csv_msg(const int num_fields, const char* fields[], const int tgt_id
     }
 
     cx += snprintf(cbuff + cx, cbuff_size - cx, "%s\n", data[tgt_ids[num_fields - 1]]);
+
+    return cx;
 }
 
-void format_csv_header(int num_fields, const char* fields[], const int cbuff_size, char* cbuff) {
+int format_csv_header(int num_fields, const char* fields[], const int cbuff_size, char* cbuff) {
     int cx = 0;
     for (int i = 0; i < num_fields - 1; i++) {
         cx += snprintf(cbuff + cx, cbuff_size - cx, "%s,", fields[i]);
     }
 
     cx += snprintf(cbuff + cx, cbuff_size - cx, "%s\n", fields[num_fields - 1]);
+
+    return cx;
 }
 
-void format_email_msg(const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50],
+int format_email_msg(const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50],
                       const int cbuff_size, char* cbuff) {
     
     int cx = 0;
@@ -75,6 +80,8 @@ void format_email_msg(const int num_fields, const char* fields[], const int tgt_
     for (int i = 10; i < num_fields; i++) {
         cx += snprintf(cbuff + cx, cbuff_size - cx, "%s: %s<br/>", fields[i], data[tgt_ids[i]]);
     }
+
+    return cx;
 }
 
 void format_json_msg(int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50], //TODO

@@ -33,7 +33,7 @@ public:
         return file.available();
     }
 
-    bool read_file(char* path, const int cbuff_size, char* cbuff) {
+    bool read_file(char* path, const int cbuff_size, char* cbuff, bool last = false) {
         String data_s;
         Serial.print("Reading from SD: ");
         Serial.print(path);
@@ -49,15 +49,42 @@ public:
         }
         file.close();
         if (data_s) {
-            data_s.toCharArray(cbuff, cbuff_size);
+            if (last) {
+                unsigned int size = data_s.length();
+                if (size > cbuff_size - 1) { // leave 1 space for terminating character
+                    String data_out = data_s.substring(size - cbuff_size);
+                    data_out.toCharArray(cbuff, cbuff_size);
+
+                } else {
+                    data_s.toCharArray(cbuff, cbuff_size);
+                }
+
+            } else {
+                data_s.toCharArray(cbuff, cbuff_size);
+            }
+
             Serial.println("read sucessful");
             return true;
         } else {
             Serial.println("WARNING: Read failed!");
             return false;
         }
-        
-        
+    }
+
+    void create_file(char* path) {
+        File file = SD.open(path, FILE_WRITE);
+        if (!file) {
+            Serial.println("WARNING: Unable to create file!");
+        }
+        file.close();
+    }
+
+    void remove_file(char* path) {
+        if (!SD.exists(path)) {
+            Serial.println("WARNING: File does not exist!");
+        }
+
+        SD.remove(path);
     }
 
     void write_file(char* path, char* data) {
