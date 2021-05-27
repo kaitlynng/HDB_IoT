@@ -16,6 +16,10 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
+#include <ESPmDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
+
 #include "modules/can_wrapper.h"
 #include "modules/gps_wrapper.h"
 #include "modules/sd_wrapper.h"
@@ -203,7 +207,7 @@ void parse_can(String can_id, String msb, String lsb) {
   }
 }
 
-void WIFI_connect() {
+void WiFi_connect() {
   unsigned long startTime = millis();
 
   Serial.printf("Connecting to %s ", NETWORK_SSID);
@@ -291,11 +295,41 @@ void setup() {
   strncpy(m_blast_csv_fname, BLAST_CSV_FILENAME, 50);
 
   //connect to WiFi
-  WIFI_connect();
+  WiFi.mode(WIFI_STA);
+  WiFi_connect();
 
   char ip_cbuff[20];
   ip2String(WiFi.localIP(), ip_cbuff);
   store(ID::ip_address, ip_cbuff); // probably need error handling
+
+  //setup Arduino OTA
+  ArduinoOTA
+    .onStart([]() {
+      String type;
+      if (ArduinoOTA.getCommand() == U_FLASH)
+        type = "sketch";
+      else // U_SPIFFS
+        type = "filesystem";
+
+      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+      Serial.println("Start updating " + type);
+    })
+    .onEnd([]() {
+      Serial.println("\nEnd");
+    })
+    .onProgress([](unsigned int progress, unsigned int total) {
+      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+    })
+    .onError([](ota_error_t error) {
+      Serial.printf("Error[%u]: ", error);
+      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+      else if (error == OTA_END_ERROR) Serial.println("End Failed");
+    });
+
+  ArduinoOTA.begin();
 
   //setup modules
   can_wrapper.setup();
@@ -374,6 +408,8 @@ void setup() {
 }
 
 void loop() {
+  ArduinoOTA.handle();
+  
   if (!connect_rtc()) {
     Serial.println("FATAL ERROR: UNABLE TO CONNECT TO RTC!");
     ESP.restart();
