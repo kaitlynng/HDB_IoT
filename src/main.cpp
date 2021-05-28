@@ -50,7 +50,7 @@ char* status_offline = strdup("offline");
 char m_blast_sql_fname[50];
 char m_blast_mqtt_fname[50];
 char m_blast_email_fname[50];
-char m_blast_email_title_fname[50];
+char m_blast_email_subject_fname[50];
 char m_blast_csv_fname[50];
 
 char unique_char = '$';
@@ -291,7 +291,7 @@ void setup() {
   strncpy(m_blast_sql_fname, BLAST_SQL_FILENAME, 50);
   strncpy(m_blast_mqtt_fname, BLAST_MQTT_FILENAME, 50);
   strncpy(m_blast_email_fname, BLAST_EMAIL_FILENAME, 50);
-  strncpy(m_blast_email_title_fname, BLAST_EMAIL_TITLE_FILENAME, 50);
+  strncpy(m_blast_email_subject_fname, BLAST_EMAIL_SUBJECT_FILENAME, 50);
   strncpy(m_blast_csv_fname, BLAST_CSV_FILENAME, 50);
 
   //connect to WiFi
@@ -302,7 +302,7 @@ void setup() {
   ip2String(WiFi.localIP(), ip_cbuff);
   store(ID::ip_address, ip_cbuff); // probably need error handling
 
-  //setup Arduino OTA
+  // setup Arduino OTA
   ArduinoOTA
     .onStart([]() {
       String type;
@@ -359,7 +359,7 @@ void setup() {
   Serial.print("Connecting to RTC....");
   if (!connect_rtc()) {
     Serial.println("FATAL ERROR: UNABLE TO CONNECT TO RTC. Restarting ESP32...");
-    ESP.restart();
+    // ESP.restart();
   }
   Serial.println("OK.");
 
@@ -392,7 +392,7 @@ void setup() {
   sd_wrapper.create_file(m_blast_sql_fname);
   sd_wrapper.create_file(m_blast_mqtt_fname);
   sd_wrapper.create_file(m_blast_email_fname);
-  sd_wrapper.create_file(m_blast_email_title_fname);
+  sd_wrapper.create_file(m_blast_email_subject_fname);
   sd_wrapper.create_file(m_blast_csv_fname);
 
   Serial.println("Mirror Demo - ESP32-Arduino-CAN");
@@ -416,6 +416,7 @@ void loop() {
   }
 
   if (rtc.now() > next_ntp_update) {
+    Serial.println("Sync rtc time!");
     sync_rtc_time();
     next_ntp_update = rtc.now() + ntp_interval;
   }
@@ -452,11 +453,11 @@ void loop() {
   }
 
   if (dt_now > dt_next) {
-    // Serial.println("Data: ");
-    // for (int i = 0; i < ID::LAST; i++) {
-    //   Serial.println(data_c[i]);
-    // }
-    // Serial.println("....................................");
+    Serial.println("Data: ");
+    for (int i = 0; i < ID::LAST; i++) {
+      Serial.println(data_c[i]);
+    }
+    Serial.println("....................................");
 
     if (WiFi.status() != WL_CONNECTED) {
       if (blast_mode == 0) {
@@ -477,47 +478,50 @@ void loop() {
       sd_wrapper.append_file(m_blast_mqtt_fname, cbuff);
 
       blast_mode = 1;
+      
     } else {
       // previously in blast_mode
       if (blast_mode) {
         Serial.println("WiFi connection restored! Blasting messages...");
 
-        sd_wrapper.read_file(m_blast_sql_fname, file_cbuff_size, file_cbuff, true);
-        unsigned int file_ptr = 0;
-        unsigned int line_ptr = 0;
+        char ch;
+        unsigned int ptr;
 
-        while (file_cbuff[file_ptr] != '\0') {
-          if (file_cbuff[file_ptr] == '\n') {
-            cbuff[file_ptr] = '\0'; // terminate the string
+        File blast_sql_file = sd_wrapper.get_file(m_blast_sql_fname);
+
+        ptr = 0;
+        while (blast_sql_file.available()) {
+          ch = blast_sql_file.read();
+          if (ch == '\n') {
+            cbuff[ptr] = '\0';
+            Serial.print("Blast: ");
+            Serial.println(cbuff);
             sql_wrapper.insert(cbuff);
-            Serial.println("Blast");
-            line_ptr = 0;
+            ptr = 0;
           } else {
-            cbuff[line_ptr] = file_cbuff[file_ptr];
-            line_ptr++;
+            cbuff[ptr] = ch;
+            ptr++;
           }
-
-          file_ptr++;
         }
 
         sd_wrapper.remove_file(m_blast_sql_fname);
         sd_wrapper.create_file(m_blast_sql_fname);
 
-        sd_wrapper.read_file(m_blast_mqtt_fname, file_cbuff_size, file_cbuff, true);
-        file_ptr = 0;
-        line_ptr = 0;
+        File blast_mqtt_file = sd_wrapper.get_file(m_blast_mqtt_fname);
 
-        while (file_cbuff[file_ptr] != '\0') {
-          if (file_cbuff[file_ptr] == '\n') {
-            cbuff[file_ptr] = '\0'; // terminate the string
+        ptr = 0;
+        while (blast_mqtt_file.available()) {
+          ch = blast_mqtt_file.read();
+          if (ch == '\n') {
+            cbuff[ptr] = '\0';
+            Serial.print("Blast: ");
+            Serial.println(cbuff);
             mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
-            line_ptr = 0;
+            ptr = 0;
           } else {
-            cbuff[line_ptr] = file_cbuff[file_ptr];
-            line_ptr++;
+            cbuff[ptr] = ch;
+            ptr++;
           }
-
-          file_ptr++;
         }
 
         sd_wrapper.remove_file(m_blast_mqtt_fname);
@@ -548,15 +552,14 @@ void loop() {
       WiFi.begin(NETWORK_SSID, NETWORK_PASS);
 
       char email_subject[100];
+      char csv_filename_with_nl[100];
       int size;
       snprintf(email_subject, 100, "%s/%s/%s\n", CONTRACT_NAME, data_c[ID::contract_num], data_c[ID::prev_hole_num]);
       size = format_email_msg(NUM_EMAIL_FIELDS, EMAIL_FIELDS, EMAIL_FIELD_IDS, data_c, cbuff_size, cbuff);
       snprintf(cbuff + size, cbuff_size - size, "\n");
-
-      char csv_filename_with_nl[100];
       snprintf(csv_filename_with_nl, 100, "%s\n", data_c[ID::csv_filename]);
 
-      sd_wrapper.append_file(m_blast_email_title_fname, email_subject);
+      sd_wrapper.append_file(m_blast_email_subject_fname, email_subject);
       sd_wrapper.append_file(m_blast_email_fname, cbuff);
       sd_wrapper.append_file(m_blast_csv_fname, csv_filename_with_nl);
 
@@ -564,82 +567,108 @@ void loop() {
     } else {
       //previously in blast mode
       if (blast_mode) {
-        char title_file_cbuff[file_cbuff_size];
-        char csv_file_cbuff[file_cbuff_size];
+        char ch;
 
-        char title_cbuff[cbuff_size];
+        unsigned int email_ptr = 0;
+        unsigned int subject_ptr = 0;
+        unsigned int csv_ptr = 0;
+
+        char email_cbuff[cbuff_size];
+        char subject_cbuff[cbuff_size];
         char csv_cbuff[cbuff_size];
 
-        sd_wrapper.read_file(m_blast_email_fname, file_cbuff_size, file_cbuff, true);
-        sd_wrapper.read_file(m_blast_email_title_fname, file_cbuff_size, title_cbuff, true);
-        sd_wrapper.read_file(m_blast_csv_fname, file_cbuff_size, csv_cbuff, true);
+        bool email_flag = false;
+        bool subject_flag = false;
+        bool csv_flag = false;
 
-        unsigned int email_file_ptr = 0;
-        unsigned int email_line_ptr = 0;
+        File blast_subject_file = sd_wrapper.get_file(m_blast_email_subject_fname);
+        File blast_email_file = sd_wrapper.get_file(m_blast_email_fname);
+        File blast_csv_file = sd_wrapper.get_file(m_blast_csv_fname);
 
-        unsigned int title_file_ptr = 0;
-        unsigned int title_line_ptr = 0;
-        
-        unsigned int csv_file_ptr = 0;
-        unsigned int csv_line_ptr = 0;
-
-        while (title_file_cbuff[title_file_ptr] != '\0') {
-          while (title_file_cbuff[title_file_ptr] != '\n') {
-            title_cbuff[title_line_ptr] = title_file_cbuff[title_file_ptr];
-            title_line_ptr++;
-            title_file_ptr++;
-          }
-          title_cbuff[title_line_ptr] = '\0'; // terminate the string
-
-          while (csv_file_cbuff[csv_file_ptr] != '\n') {
-            csv_cbuff[csv_line_ptr] = csv_file_cbuff[csv_file_ptr];
-            csv_line_ptr++;
-            csv_file_ptr++;
-          }
-          csv_cbuff[csv_line_ptr] = '\0'; // terminate the string
-
-          while (file_cbuff[email_file_ptr] != '\n') {
-            cbuff[email_line_ptr] = file_cbuff[email_file_ptr];
-            email_file_ptr++;
-            email_line_ptr++;
-          }
-          cbuff[email_line_ptr] = '\0'; // terminate the string
-
-          //send!
-          bool attach_file;
-          if (sd_wrapper.is_file_available(csv_cbuff)) {
-            attach_file = true;
-          } else {
-            attach_file = false;
-            Serial.println("WARNING: Unable to open csv file for email attachment!");
+        while (true) {
+          while (blast_subject_file.available() > 0) {
+            ch = blast_subject_file.read();
+            if (ch == '\n') {
+              subject_cbuff[subject_ptr] = '\0';
+              Serial.println(subject_cbuff);
+              subject_flag = true; // ready to send
+              subject_ptr = 0;
+            break;
+            } else {
+              subject_cbuff[subject_ptr] = ch;
+              subject_ptr++;
+            }
           }
 
-          email_wrapper.send(EMAIL_SENDER_NAME, EMAIL_SENDER_ACCOUNT, EMAIL_SENDER_PASS, 
-                          EMAIL_NUM_RECIPIENTS, EMAIL_RECIPIENTS,
-                          title_cbuff, cbuff, csv_cbuff, attach_file);
-          
-          // reset
-          email_line_ptr = 0;
-          title_line_ptr = 0;
-          csv_line_ptr = 0;
+          while (blast_email_file.available() > 0) {
+            ch = blast_email_file.read();
+            if (ch == '\n') {
+              email_cbuff[email_ptr] = '\0';
+              Serial.println(email_cbuff);
+              email_flag = true; // ready to send
+              email_ptr = 0;
+            break;
+            } else {
+              email_cbuff[email_ptr] = ch;
+              email_ptr++;
+            }
+          }
 
-          email_file_ptr++;
-          title_file_ptr++;
-          csv_file_ptr++;
+          while (blast_csv_file.available() > 0) {
+            ch = blast_csv_file.read();
+            if (ch == '\n') {
+              csv_cbuff[csv_ptr] = '\0';
+              Serial.println(csv_cbuff);
+              csv_flag = true; // ready to send
+              csv_ptr = 0;
+              break;
+            } else {
+              csv_cbuff[csv_ptr] = ch;
+              csv_ptr++;
+            }
+          }
+
+          if (subject_flag && email_flag && csv_flag) { // all messages are well-formed
+            bool attach_file;
+            if (sd_wrapper.is_file_available(csv_cbuff)) {
+              attach_file = true;
+            } else {
+              attach_file = false;
+              Serial.println("WARNING: Unable to open csv file for email attachment!");
+            }
+
+            email_wrapper.send(EMAIL_SENDER_NAME, EMAIL_SENDER_ACCOUNT, EMAIL_SENDER_PASS, 
+                  EMAIL_NUM_RECIPIENTS, EMAIL_RECIPIENTS,
+                  subject_cbuff, email_cbuff, csv_cbuff, attach_file);
+            
+            // reset
+            email_ptr = 0;
+            subject_ptr = 0;
+            csv_ptr = 0;
+
+            subject_flag = false;
+            email_flag = false;
+            csv_flag = false;
+
+          } else { // malformed messages / end of file
+            break;
+          }
         }
-
+        
         sd_wrapper.remove_file(m_blast_email_fname);
         sd_wrapper.create_file(m_blast_email_fname);
 
-        sd_wrapper.remove_file(m_blast_email_title_fname);
-        sd_wrapper.create_file(m_blast_email_title_fname);
+        sd_wrapper.remove_file(m_blast_email_subject_fname);
+        sd_wrapper.create_file(m_blast_email_subject_fname);
 
         sd_wrapper.remove_file(m_blast_csv_fname);
         sd_wrapper.create_file(m_blast_csv_fname);
 
         blast_mode = 0;
+
       }
 
+      // send normal message
       char email_subject[100];
       snprintf(email_subject, 100, "%s/%s/%s", CONTRACT_NAME, data_c[ID::contract_num], data_c[ID::prev_hole_num]);
       format_email_msg(NUM_EMAIL_FIELDS, EMAIL_FIELDS, EMAIL_FIELD_IDS, data_c, cbuff_size, cbuff);

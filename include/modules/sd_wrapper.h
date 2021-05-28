@@ -33,7 +33,15 @@ public:
         return file.available();
     }
 
-    bool read_file(char* path, const int cbuff_size, char* cbuff, bool last = false) {
+    File get_file(char* path) {
+        File file = SD.open(path);
+        if (!file.available()) {
+            Serial.println("WARNING: Unable to open file!");
+        }
+        return file;
+    }
+
+    bool read_file(char* path, const int cbuff_size, char* cbuff) {
         String data_s;
         Serial.print("Reading from SD: ");
         Serial.print(path);
@@ -49,20 +57,7 @@ public:
         }
         file.close();
         if (data_s) {
-            if (last) {
-                unsigned int size = data_s.length();
-                if (size > cbuff_size - 1) { // leave 1 space for terminating character
-                    String data_out = data_s.substring(size - cbuff_size);
-                    data_out.toCharArray(cbuff, cbuff_size);
-
-                } else {
-                    data_s.toCharArray(cbuff, cbuff_size);
-                }
-
-            } else {
-                data_s.toCharArray(cbuff, cbuff_size);
-            }
-
+            data_s.toCharArray(cbuff, cbuff_size);
             Serial.println("read sucessful");
             return true;
         } else {

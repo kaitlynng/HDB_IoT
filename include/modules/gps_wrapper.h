@@ -26,7 +26,7 @@ public:
         }
         
         if (millis() > 5000 && gps.charsProcessed() < 10) {
-            Serial.println("WARNING: No GPS detected!");
+            // Serial.println("WARNING: No GPS detected!");
         }
 
         return false;

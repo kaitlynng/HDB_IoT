@@ -9,7 +9,7 @@
 #define DAYLIGHTOFFSET_SEC   0
 #define RTC_TIMEOUT          10 // seconds
 
-#define RTC_SYNC_RATE            30*60 // seconds
+#define RTC_SYNC_RATE        60 // 30*60 // seconds
 
 // ESP sleep //
 #define FORMAT_LITTLEFS_IF_FAILED   true
@@ -71,7 +71,7 @@ const char* DEFAULT_VALUES[] = {
 #define NUM_STORAGE_FILENAMES   11
 #define FILENAME_SIZE           30
 const char* STORAGE_FILENAMES[] = {
-    "/Hole_diameter", "/Hole_Number", "/Hole_Number", "/initialdate.txt", 
+    "/Hole_diameter", "/Hole_Number", "/Prev_Hole_Number", "/initialdate.txt", 
     "/MachineID.txt", "/MachineID.txt", "/Intended_depth.txt", "/depthMAX.txt",
     "/BlockNO.txt", "/ContractNo.txt", "/CSVFilename.txt"
 };
@@ -85,7 +85,7 @@ const int STORAGE_FILENAME_IDS[] = {
 #define BLAST_SQL_FILENAME          "/blast_sql"
 #define BLAST_MQTT_FILENAME         "/blast_mqtt"
 #define BLAST_EMAIL_FILENAME        "/blast_email"
-#define BLAST_EMAIL_TITLE_FILENAME  "/blast_email_title"
+#define BLAST_EMAIL_SUBJECT_FILENAME  "/blast_email_subject"
 #define BLAST_CSV_FILENAME          "/blast_csv"
 
 #define HTML_FILENAME       "/index.htm"
