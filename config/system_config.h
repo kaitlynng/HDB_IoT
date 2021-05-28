@@ -82,11 +82,8 @@ const int STORAGE_FILENAME_IDS[] = {
     ID::block_num, ID::contract_num, ID::csv_filename
 };
 
-#define BLAST_SQL_FILENAME          "/blast_sql"
-#define BLAST_MQTT_FILENAME         "/blast_mqtt"
-#define BLAST_EMAIL_FILENAME        "/blast_email"
-#define BLAST_EMAIL_SUBJECT_FILENAME  "/blast_email_subject"
-#define BLAST_CSV_FILENAME          "/blast_csv"
+#define BLAST_FILENAME          "/blast"
+#define BLAST_EMAIL_FILENAME    "/bast_email"
 
 #define HTML_FILENAME       "/index.htm"
 

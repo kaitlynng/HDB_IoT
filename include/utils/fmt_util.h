@@ -22,6 +22,17 @@ void ip2String(IPAddress ip, char* cbuff) {
     sprintf(cbuff, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 }
 
+int format_blast_msg(const int num_fields, char (*data)[50], const int cbuff_size, char* cbuff) {
+    int cx = 0;
+    for (int i = 0; i < num_fields; i++) {
+        cx += snprintf(cbuff + cx, cbuff_size - cx, "%s,", data[i]);
+    }
+
+    cx += snprintf(cbuff + cx, cbuff_size - cx, "\n");
+
+    return cx;
+}
+
 int format_sql_msg(const char* db, const char* table, 
                     const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50], 
                     const int cbuff_size, char* cbuff) {
