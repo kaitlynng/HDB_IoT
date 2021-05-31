@@ -7,6 +7,12 @@
 #define NETWORK_SSID    "AndroidAPf2b2" // "AIDrivers SG - 2.4G" // "Ng-fam-weefee-extraordinaire" // "HDB4" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
 #define NETWORK_PASS    "rfkv0877" // "@1Drivers75" // "tecknam67941827" // "hdbdatalogger" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
 
+const int LOCAL_IP_ADDRESS[] = {192, 168, 1, 184};
+const int GATEWAY_ADDRESS[] = {192, 168, 1, 1};
+const int SUBNET_ADDRESS[] = {255, 255, 0, 0};
+const int PRIMARY_DNS[] = {8, 8, 8, 8};
+const int SECONDARY_DNS[] = {8, 8, 4, 4};
+
 // MQTT server
 #define MQTT_SERVER         "2.tcp.ngrok.io"
 #define MQTT_SERVER_PORT    11576

@@ -52,6 +52,13 @@ char m_blast_email_fname[50];
 
 char unique_char = '$';
 
+IPAddress local_ip(LOCAL_IP_ADDRESS[0], LOCAL_IP_ADDRESS[1], LOCAL_IP_ADDRESS[2], LOCAL_IP_ADDRESS[3]);
+IPAddress gateway(GATEWAY_ADDRESS[0], GATEWAY_ADDRESS[1], GATEWAY_ADDRESS[2], GATEWAY_ADDRESS[3]);
+
+IPAddress subnet(SUBNET_ADDRESS[0], SUBNET_ADDRESS[1], SUBNET_ADDRESS[2], SUBNET_ADDRESS[3]);
+IPAddress primary_dns(PRIMARY_DNS[0], PRIMARY_DNS[1], PRIMARY_DNS[2], PRIMARY_DNS[3]);
+IPAddress secondary_dns(SECONDARY_DNS[0], SECONDARY_DNS[1], SECONDARY_DNS[2], SECONDARY_DNS[3]);
+
 // objects
 CanWrapper can_wrapper(CAN_RXPIN, CAN_TXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
 GpsWrapper gps_wrapper(GPS_RXPIN, GPS_TXPIN, GPS_BAUDRATE);
@@ -290,6 +297,10 @@ void setup() {
 
   //connect to WiFi
   WiFi.mode(WIFI_STA);
+  // Configure static ip address
+  if (!WiFi.config(local_ip, gateway, subnet, primary_dns, secondary_dns)) {
+    Serial.println("WARNING: STA Failed to configure");
+  }
   WiFi_connect();
 
   char ip_cbuff[20];
