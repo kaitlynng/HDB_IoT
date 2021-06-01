@@ -64,7 +64,7 @@ const char* DEFAULT_VALUES[] = {
     "default", "default", "YYYY-MM-DD_hh-mm-ss", 
     "#.#####", "#.#####", "#.#####", "#.#####", "#.#####", 
     "YYYY-MM-DD_hh-mm-ss", "#",
-    "/default.csv"
+    "default.csv"
 };
 
 // filenames //
@@ -83,7 +83,7 @@ const int STORAGE_FILENAME_IDS[] = {
 };
 
 #define BLAST_FILENAME          "/blast"
-#define BLAST_EMAIL_FILENAME    "/bast_email"
+#define BLAST_EMAIL_FILENAME    "/blast_email"
 
 #define HTML_FILENAME       "/index.htm"
 

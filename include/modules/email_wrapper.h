@@ -3,7 +3,7 @@
 #define EMAIL_WRAPPER_H_
 
 #include <Arduino.h>
-#include <ESP32_MailClient.h>
+#include <ESP_Mail_Client.h>
 
 class EmailWrapper
 {
@@ -22,68 +22,76 @@ public:
         }
     }
 
-    static void sendCallback(SendStatus msg) {
-        // Print the current status
-        Serial.println(msg.info());
+    static void sendCallback(SMTP_Status status) {
+        /* Print the current status */
+        Serial.println(status.info());
 
         // Do something when complete
-        if (msg.success()) {
+        if (status.success()) {
             Serial.println("----------------");
         }
     }
 
     void send(const char* sender_name, const char* sender_account, const char* sender_pass, 
               const int num_recipients, const char* recipients[], 
-              char* subject, char* msg, char* filename, bool attach_file) {
+              char* subject, char* msg, char* filename, char* path, bool attach_file) {
         
         if (!active_flag) {
             return;
         }
+
+        SMTPSession smtp;
         
-        smtpData.setLogin(m_smtp_server, m_smtp_server_port, sender_account, sender_pass);
-        
-        // Set the sender name and Email
-        smtpData.setSender(sender_name, sender_account);
+        smtp.debug(0);
+        smtp.callback(sendCallback);
+        ESP_Mail_Session session;
 
-        // Set Email priority or importance High, Normal, Low or 1 to 5 (1 is highest)
-        smtpData.setPriority("High");
+        session.server.host_name = m_smtp_server;
+        session.server.port = m_smtp_server_port;
+        session.login.email = sender_account;
+        session.login.password = sender_pass;
 
-        // Set the subject
-        smtpData.setSubject(subject);
+        SMTP_Message message;
 
-        // Set the message with HTML format
-        smtpData.setMessage(msg, true);
+        message.enable.chunking = true;
+        message.sender.name = sender_name;
+        message.sender.email = sender_account;
+        message.subject = subject;
 
         // Add recipients, you can add more than one recipient
+        char name[7];
         for (int i = 0; i < num_recipients; i++) {
-          smtpData.addRecipient(recipients[i]);
+            snprintf(name, 7, "User%d", i);
+            message.addRecipient(name, recipients[i]);
         }
 
-        if (attach_file) {
-            smtpData.addAttachFile(filename);
-            smtpData.setFileStorageType(MailClientStorageType::SD);
+        message.html.content = msg;
+        message.html.charSet = "utf-8";
+
+        message.priority = esp_mail_smtp_priority::esp_mail_smtp_priority_high;
+        message.response.notify = esp_mail_smtp_notify_success | esp_mail_smtp_notify_failure | esp_mail_smtp_notify_delay;
+
+        SMTP_Attachment att;
+        att.descr.filename = filename;
+        att.file.path = path;
+        att.file.storage_type = esp_mail_file_storage_type_sd;
+
+        message.addAttachment(att);
+
+        if (!smtp.connect(&session)) {
+            Serial.println("Unable to connect to smtp session!");
+            return;
         }
 
-        smtpData.setSendCallback(sendCallback);
-
-        //Start sending Email, can be set callback function to track the status
-        if (!MailClient.sendMail(smtpData)) {
-          Serial.println("Error sending Email, " + MailClient.smtpErrorReason());
-          //email_error = dateTime + " EMAIL "+ MailClient.smtpErrorReason()+nl;
-          //email_error.toCharArray(email_error_sent, 100);
-          //appendFile(SD, "/error_log", email_error_sent);
-          //appendFile(SD, "/email_fail_sent",FSstorage);
+        if (!MailClient.sendMail(&smtp, &message, true)) {
+            Serial.println("Error sending Email, " + smtp.errorReason());
         }
-
-        smtpData.empty();
     }
 
 
 private:
     char* m_smtp_server;
     int m_smtp_server_port;
-
-    SMTPData smtpData;
 
     bool active_flag;
 };

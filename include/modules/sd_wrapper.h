@@ -29,8 +29,7 @@ public:
     }
 
     bool is_file_available(char* path) {
-        File file = SD.open(path);
-        return file.available();
+        return SD.exists(path);
     }
 
     File get_file(char* path) {
