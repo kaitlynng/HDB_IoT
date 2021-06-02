@@ -64,7 +64,10 @@
     <span id="PileLength">%PileLength%</span>
   </p>
   <p>
-     
+    <span class="dht-labels">Rock Socket Length:</span>
+    <span id="PileLength">%RockSocketLength%</span>
+  </p>
+  <p>
     <span class="dht-labels">Machine ID:</span>
     <span id="MachineID">%MachineID%</span>
   </p>
@@ -110,7 +113,14 @@
     </datalist>
     <input type="submit" value="Submit" onSubmit="return false">
   </form><br>
-    <form action="/get">
+  <form action="/get">
+    Rock Socket Length: <input type="text" id="input3" list="Rock_Socket_length" name="rock_socket_target_length">
+    <datalist id="Rock_Socket_length">
+     <option value="10" data-id="1" />
+    </datalist>
+    <input type="submit" value="Submit" onSubmit="return false">
+  </form><br>
+  <form action="/get">
     Machine ID: <input type="text" id="input4" list="Machine_ID" name="input4">
     <datalist id="Machine_ID">
      <option value="Crane1" data-id="1" />

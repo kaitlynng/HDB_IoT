@@ -46,7 +46,7 @@
 enum ID {
     sender_id, sensor_id, event_title, event_id, event_type,
     block_num, contract_num, ip_address, 
-    severity, description, target_depth, 
+    severity, description, target_depth, rock_socket_target_length,
     lat, longi, hole_dia, hole_num,
     sensor_status, gps_status, rock_socket_status, datetime,
     depth, torque, incl_x, incl_y, max_depth,
@@ -56,10 +56,22 @@ enum ID {
     LAST
 };
 
+const char* ID_NAMES[] = {
+    "sender_id", "sensor_id", "event_title", "event_id", "event_type",
+    "block_num", "contract_num", "ip_address", 
+    "severity", "description", "target_depth", "rock_socket_target_length",
+    "lat", "longi", "hole_dia", "hole_num",
+    "sensor_status", "gps_status", "rock_socket_status", "datetime",
+    "depth", "torque", "incl_x", "incl_y", "max_depth",
+    "rock_socket_start_depth", "rock_socket_depth", "rock_socket_max_depth", "rock_socket_length",
+    "prev_dt", "prev_hole_num",
+    "csv_filename"
+};
+
 const char* DEFAULT_VALUES[] = {
     "Crane1", "Crane1", "TengahDrill", "EV-183159-DRILL-01-DIGITALPILE-SANY-JURONG", "digitalpiling/System#Reading",
     "BLK306A", "21", "0.0.0.0",
-    "6", "sensor readings", "0.0",
+    "6", "sensor readings", "0.0", "0.0",
     "0.0", "0.0", "0.0", "G1-2",
     "offline", "offline", "off", "0000-00-00_00-00-00",
     "0.0", "0.0", "0.0", "0.0", "0.0",
@@ -73,14 +85,14 @@ const char* DEFAULT_VALUES[] = {
 #define FILENAME_SIZE           30
 const char* STORAGE_FILENAMES[] = {
     "/Hole_diameter", "/Hole_Number", "/Prev_Hole_Number", "/initialdate.txt", 
-    "/MachineID.txt", "/MachineID.txt", "/Intended_depth.txt", "/depthMAX.txt",
+    "/MachineID.txt", "/MachineID.txt", "/Intended_depth.txt", "/depthMAX.txt", "/rock_socket_target_length",
     "/rock_socket_status", "/rock_socket_start_depth", "/rock_socket_max_depth", "/rock_socket_length",
     "/BlockNO.txt", "/ContractNo.txt", "/CSVFilename.txt"
 };
 
 const int STORAGE_FILENAME_IDS[] = {
     ID::hole_dia, ID::hole_num, ID::prev_hole_num, ID::prev_dt, 
-    ID::sender_id, ID::sensor_id, ID::target_depth, ID::max_depth,
+    ID::sender_id, ID::sensor_id, ID::target_depth, ID::max_depth, ID::rock_socket_target_length,
     ID::rock_socket_status, ID::rock_socket_start_depth, ID::rock_socket_max_depth, ID::rock_socket_length,
     ID::block_num, ID::contract_num, ID::csv_filename
 };
@@ -112,49 +124,51 @@ const int SQL_FIELD_IDS[] = {
 };
 
 // csv fields //
-#define NUM_CSV_FIELDS  14
+#define NUM_CSV_FIELDS  15
 
 const char* CSV_FIELDS[] = {
     "Send ID", "Sensor ID", "Lattitude", "Longitude",
     "Event ID", "Event Type", "Sensor Status", 
-    "Date and Time", "Severity", "Depth", "Torque", 
+    "Date and Time", "Severity", "Depth", "Torque", "Rock socket length", 
     "InclineX", "InclineY", "Description"
 };
 
 const int CSV_FIELD_IDS[] = {
     ID::sender_id, ID::sensor_id, ID::lat, ID::longi, 
     ID::event_id, ID::event_type, ID::sensor_status,
-    ID::datetime, ID::severity, ID::depth, ID::torque,
+    ID::datetime, ID::severity, ID::depth, ID::torque, ID::rock_socket_length,
     ID::incl_x, ID::incl_y, ID::description
 };
 
 // email fields //
-#define NUM_EMAIL_FIELDS    14
+#define NUM_EMAIL_FIELDS    16
 
 const char* EMAIL_FIELDS[] = {
     "EventID", "Event type", "Description", "Severity", 
     "\nSenderID", "SensorID", "Starting time", 
-    "\nPile ID", "Resource path", "", "Calculated Depth from Top of Casing (m)",
-    "\nTime", "Sensor status", "Measured (Max) Depth from Top of Casing (m)"
+    "\nPile ID", "Resource path", "", "Calculated Depth from Top of Casing (m)", "Calculated Length of Rock Socket Layer (m)", 
+    "\nTime", "Sensor status", "Measured (Max) Depth from Top of Casing (m)", "Measured Length of Rock Socket Layer (m)"
 };
 
 const int EMAIL_FIELD_IDS[] = {
     ID::event_id, ID::event_type, ID::description, ID::severity,
     ID::sender_id, ID::sensor_id, ID::prev_dt,
-    ID::prev_hole_num, ID::lat, ID::longi, ID::target_depth,
-    ID::datetime, ID::sensor_status, ID::max_depth
+    ID::prev_hole_num, ID::lat, ID::longi, ID::target_depth, ID::rock_socket_target_length,
+    ID::datetime, ID::sensor_status, ID::max_depth, ID::rock_socket_length
 };
 
 // http req fields //
-#define NUM_HTTP_FIELDS     8
+#define NUM_HTTP_FIELDS     9
 const char* HTTP_FIELDS[] = {
     "input1", "input2", "input3", 
-    "input4", "input4", "input5", "input6", "rock_socket_status"
+    "input4", "input4", "input5", "input6", 
+    "rock_socket_target_length", "rock_socket_status"
 };
 
 const int HTTP_FIELD_IDS[] = {
     ID::hole_dia, ID::hole_num, ID::target_depth, 
-    ID::sender_id, ID::sensor_id, ID::block_num, ID::contract_num, ID::rock_socket_status
+    ID::sender_id, ID::sensor_id, ID::block_num, ID::contract_num, 
+    ID::rock_socket_target_length, ID::rock_socket_status
 }; // HTML web page to handle 2 input fields (input1, input2)
 
 // json fields //

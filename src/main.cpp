@@ -99,8 +99,10 @@ DateTime next_gps_update;
 int is_sensor_online = 0;
 int is_gps_online = 0;
 int blast_mode = 0;
+
+float rock_socket_length_marker = 0.0;
 int rock_socket_status_changed = 0;
-int rock_socket_status = 0;
+int rock_socket_status_i = 0;
 
 void store(int id, char* val) {
   strncpy(data_c[id], val, 50);
@@ -170,6 +172,9 @@ String processor(const String &var) { // TODO
 
   } else if (var == "ContractNo") {
       return data_c[ID::contract_num];
+  
+  } else if (var == "RockSocketLength") {
+      return data_c[ID::rock_socket_target_length];
 
   } else if (var == "BUTTONPLACEHOLDER") {
     String button = "<h4>Rock Socket Status</h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"rock_socket_status\" ";
@@ -212,12 +217,14 @@ void parse_can(String can_id, String msb, String lsb) {
       store(ID::max_depth, data_f[ID::depth]);
     }
 
-    if (rock_socket_status) {
+    if (rock_socket_status_i) {
       store(ID::rock_socket_depth, lsb_f - data_f[ID::rock_socket_start_depth]);
 
       if (data_f[ID::rock_socket_depth] > data_f[ID::rock_socket_max_depth]) {
         store(ID::rock_socket_max_depth, data_f[ID::rock_socket_depth]);
       }
+
+      store(ID::rock_socket_length, rock_socket_length_marker - data_f[ID::rock_socket_max_depth]);
     }
 
     is_sensor_online = 1;
@@ -450,8 +457,10 @@ void setup() {
 
   // set rock_socket_status
   if (strcmp(data_c[ID::rock_socket_status], "on") == 0) {
-    rock_socket_status = 1;
+    rock_socket_status_i = 1;
   }
+
+  rock_socket_length_marker = data_f[ID::rock_socket_length];
 
   // send first email by default
   char blast_cbuff[50 * ID::LAST];
@@ -616,17 +625,17 @@ void loop() {
       } else {
         store(ID::rock_socket_start_depth, float(0.0));
       }
-      rock_socket_status = 1;
+      rock_socket_status_i = 1;
       
     } else {
       // went from on to off
-      store(ID::rock_socket_length, data_f[ID::rock_socket_length]-data_f[ID::rock_socket_max_depth]);
+      rock_socket_length_marker = rock_socket_length_marker-data_f[ID::rock_socket_max_depth];
 
       // reset start depth and max depth
       store(ID::rock_socket_start_depth, float(0.0));
       store(ID::rock_socket_max_depth, float(0.0));
 
-      rock_socket_status = 0;
+      rock_socket_status_i = 0;
     }
 
     rock_socket_status_changed = 0;
@@ -635,6 +644,8 @@ void loop() {
   if (dt_now > dt_next) {
     Serial.println("Data: ");
     for (int i = 0; i < ID::LAST; i++) {
+      Serial.print(ID_NAMES[i]);
+      Serial.print(": ");
       Serial.println(data_c[i]);
     }
     Serial.println("....................................");
@@ -720,6 +731,7 @@ void loop() {
     store(ID::rock_socket_start_depth, float(0.0));
     store(ID::rock_socket_max_depth, float(0.0));
     store(ID::rock_socket_length, float(0.0));
+    rock_socket_length_marker = 0.0;
 
     //update csv filename
     char new_csv_filename[100];
@@ -736,5 +748,7 @@ void loop() {
   }
 
   reset_flags();
+  is_sensor_online = 0;
+  is_gps_online = 0;
   
 }
