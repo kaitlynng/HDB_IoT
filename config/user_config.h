@@ -4,18 +4,19 @@
 #include <Arduino.h>
 
 // network credentials
-#define NETWORK_SSID    "Ng-fam-weefee-extraordinaire" // "AndroidAPf2b2" // "AIDrivers SG - 2.4G" // "HDB4" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
-#define NETWORK_PASS    "tecknam67941827" // "rfkv0877" // "@1Drivers75" // "hdbdatalogger" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
+#define NETWORK_SSID    "AIDrivers SG - 2.4G" // "Ng-fam-weefee-extraordinaire" // "AndroidAPf2b2" // "HDB4" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
+#define NETWORK_PASS    "@1Drivers75" // "tecknam67941827" // "rfkv0877" // "hdbdatalogger" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
 
-const int LOCAL_IP_ADDRESS[] = {192, 168, 1, 184}; 
-const int GATEWAY_ADDRESS[] = {192, 168, 1, 254}; // need to configure!
-const int SUBNET_ADDRESS[] = {255, 255, 0, 0};
-const int PRIMARY_DNS[] = {8, 8, 8, 8};
-const int SECONDARY_DNS[] = {8, 8, 4, 4};
+const int LOCAL_IP_ADDRESS[] = {192, 168, 10, 184}; 
+const int GATEWAY_ADDRESS[] = {192, 168, 10, 1}; // need to configure!
+const int SUBNET_ADDRESS[] = {255, 255, 255, 0};
+
+const int PRIMARY_DNS[] = {192, 168, 10, 1};
+const int SECONDARY_DNS[] = {0, 0, 0, 0};
 
 // MQTT server
-#define MQTT_SERVER         "2.tcp.ngrok.io"
-#define MQTT_SERVER_PORT    11576
+#define MQTT_SERVER         "3.tcp.ngrok.io"  // "192.168.10.110" // "6.tcp.ngrok.io" // "2.tcp.ngrok.io"
+#define MQTT_SERVER_PORT     21369 // 1883 // 18010  // 11576
 #define MQTT_CLIENT         "ESP32Client"
 #define MQTT_TOPIC          "Crane/1"
 
@@ -50,7 +51,7 @@ const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *serve
 #define EMAIL_SENDER_PASS       "A@123456789" //radianceX3//A@123456789
 
 #define SMTP_SERVER             "smtp.gmail.com" //smtp.office365.com//smtp.gmail.com
-#define SMTP_SERVER_PORT        465 //465//587
+#define SMTP_SERVER_PORT        587 // 465 //465//587
 
 // edit the num_recipients to reflect the number of email recipients
 //#define EMAIL_NUM_RECIPIENTS    3
@@ -61,7 +62,7 @@ const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com"}; //aidrivers.demo@gm
 
 #define UPDATE_RATE     10 //seconds
 
-#define SQL_FLAG        true
+#define SQL_FLAG        false
 #define MQTT_FLAG       true
 #define EMAIL_FLAG      true
 

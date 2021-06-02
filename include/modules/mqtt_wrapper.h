@@ -11,12 +11,7 @@ class MqttWrapper
 public:
     MqttWrapper(WiFiClient &client, const char* server_name, int server_port, const char* client_name,  
                 int timeout = 1, bool flag = true)
-    : m_server_port(server_port), m_timeout(timeout), active_flag(flag) {
-        m_server_name = strdup(server_name); // convert const char* to char* for API calls
-        m_client_name = strdup(client_name);
-
-        mqtt_client = PubSubClient(client);
-    }
+    : mqtt_client(client), m_server_name(server_name), m_server_port(server_port), m_client_name(client_name), m_timeout(timeout), active_flag(flag) {}
 
     MqttWrapper() = delete;
     ~MqttWrapper() {}
@@ -27,6 +22,7 @@ public:
             return;
         }
         mqtt_client.setServer(m_server_name, m_server_port);
+        connect();
         //mqtt_client.setCallback(callback);  
     }
 
@@ -47,7 +43,8 @@ public:
             }
             //Attempt to connect
             if (mqtt_client.connect(m_client_name)) {
-                Serial.println("MQTT server Connected");            }
+                Serial.println("MQTT server Connected");
+            }
         }
     }
 
@@ -91,6 +88,13 @@ public:
         if (!active_flag) {
             return;
         }
+
+        if (!mqtt_client.connected()) {
+            connect();
+        }
+
+        mqtt_client.loop();
+
         if (mqtt_client.publish(topic, data)) {
             Serial.println("Message published");
         }
@@ -113,14 +117,16 @@ public:
     }
 
 private:
-    char* m_server_name;
+
+    PubSubClient mqtt_client;
+    
+    const char* m_server_name;
     int m_server_port;
-    char* m_client_name;
+    const char* m_client_name;
 
     int m_timeout; // seconds, 0: do not timeout
 
-    WiFiClient client;
-    PubSubClient mqtt_client;
+    
 
     bool active_flag;
 };

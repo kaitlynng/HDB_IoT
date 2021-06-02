@@ -43,9 +43,9 @@ const TimeSpan ntp_interval = TimeSpan(RTC_SYNC_RATE);
 const TimeSpan gps_interval = TimeSpan(GPS_TIMEOUT);
 const TimeSpan can_interval = TimeSpan(CAN_TIMEOUT); 
 
-char* datetime_fmt = strdup("YYYY-MM-DD_hh-mm-ss");
-char* status_online = strdup("online");
-char* status_offline = strdup("offline");
+char datetime_fmt[20] = "YYYY-MM-DD_hh-mm-ss";
+char status_online[7] = "online";
+char status_offline[8] = "offline";
 
 char m_blast_fname[50];
 char m_blast_email_fname[50];
@@ -441,6 +441,8 @@ void loop() {
           format_sql_msg(DEFAULT_DB, DEFAULT_TABLE, NUM_SQL_FIELDS, SQL_FIELDS, SQL_FIELD_IDS, blast_data_c, cbuff_size, cbuff);
           Serial.println(cbuff);
           sql_wrapper.insert(cbuff);
+
+          format_json_msg(NUM_JSON_FIELDS, JSON_FIELDS, JSON_FIELD_IDS, blast_data_c, cbuff_size, cbuff);
           Serial.println(cbuff);
           mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
 

@@ -9,9 +9,7 @@ class EmailWrapper
 {
 public:
     EmailWrapper(const char* smtp_server, const int smtp_server_port, bool flag = true)
-    : m_smtp_server_port(smtp_server_port), active_flag(flag) {
-        m_smtp_server = strdup(smtp_server);
-    }
+    : m_smtp_server(smtp_server), m_smtp_server_port(smtp_server_port), active_flag(flag) {}
 
     EmailWrapper() = delete;
     ~EmailWrapper() {}
@@ -20,6 +18,9 @@ public:
         if (!active_flag) {
           Serial.println("WARNING: Email is inactivated!");
         }
+
+        smtp.debug(0);
+        smtp.callback(sendCallback);
     }
 
     static void sendCallback(SMTP_Status status) {
@@ -39,11 +40,7 @@ public:
         if (!active_flag) {
             return;
         }
-
-        SMTPSession smtp;
         
-        smtp.debug(0);
-        smtp.callback(sendCallback);
         ESP_Mail_Session session;
 
         session.server.host_name = m_smtp_server;
@@ -90,8 +87,10 @@ public:
 
 
 private:
-    char* m_smtp_server;
+    const char* m_smtp_server;
     int m_smtp_server_port;
+
+    SMTPSession smtp;
 
     bool active_flag;
 };

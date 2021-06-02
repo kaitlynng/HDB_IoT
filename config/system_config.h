@@ -9,7 +9,7 @@
 #define DAYLIGHTOFFSET_SEC   0
 #define RTC_TIMEOUT          10 // seconds
 
-#define RTC_SYNC_RATE        60 // 30*60 // seconds
+#define RTC_SYNC_RATE        30*60 // 30*60 // seconds
 
 // ESP sleep //
 #define FORMAT_LITTLEFS_IF_FAILED   true
@@ -23,7 +23,6 @@
 
 // MQTT params //
 #define MQTT_TIMEOUT      1 // seconds
-
 
 // CAN params //
 #define CAN_RX_QUEUE_SIZE   40

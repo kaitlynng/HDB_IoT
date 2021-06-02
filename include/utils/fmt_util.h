@@ -114,9 +114,7 @@ void format_json_msg(int num_fields, const char* fields[], const int tgt_ids[], 
         parameters[fields[i]] = data[tgt_ids[i]];
     }
 
-    serializeJsonPretty(doc, msg);
-
-    msg.toCharArray(cbuff, cbuff_size);
+    serializeJson(doc, cbuff, cbuff_size);
 }
 
 #endif
