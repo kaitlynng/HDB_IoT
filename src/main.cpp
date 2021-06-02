@@ -99,6 +99,8 @@ DateTime next_gps_update;
 int is_sensor_online = 0;
 int is_gps_online = 0;
 int blast_mode = 0;
+int rock_socket_status_changed = 0;
+int rock_socket_status = 0;
 
 void store(int id, char* val) {
   strncpy(data_c[id], val, 50);
@@ -169,7 +171,14 @@ String processor(const String &var) { // TODO
   } else if (var == "ContractNo") {
       return data_c[ID::contract_num];
 
-  } else {
+  } else if (var == "BUTTONPLACEHOLDER") {
+    String button = "<h4>Rock Socket Status</h4><label class=\"switch\"><input type=\"checkbox\" onchange=\"toggleCheckbox(this)\" id=\"rock_socket_status\" ";
+    button += "";
+    button += "><span class=\"slider\"></span></label>";
+    return button;
+  }
+  
+   else {
       return "";
   }
 }
@@ -193,14 +202,24 @@ void parse_can(String can_id, String msb, String lsb) {
     is_sensor_online = 1;
      
   } else if (can_id == CANID_DEPTH) {
+    float lsb_f = lsb.toFloat();
     if (!data_updated[ID::depth]) {       // only take the lastest depth value...
-      store(ID::depth, lsb.toFloat());
+      store(ID::depth, lsb_f);
       data_updated[ID::depth] = true;
     }
 
-    if (lsb.toFloat() > data_f[ID::max_depth]) {   // but pick the max depth value of everything
+    if (lsb_f > data_f[ID::max_depth]) {   // but pick the max depth value of everything
       store(ID::max_depth, data_f[ID::depth]);
     }
+
+    if (rock_socket_status) {
+      store(ID::rock_socket_depth, lsb_f - data_f[ID::rock_socket_start_depth]);
+
+      if (data_f[ID::rock_socket_depth] > data_f[ID::rock_socket_max_depth]) {
+        store(ID::rock_socket_max_depth, data_f[ID::rock_socket_depth]);
+      }
+    }
+
     is_sensor_online = 1;
     
   } else if (can_id == CANID_TORQUE) {
@@ -375,6 +394,15 @@ void setup() {
   //for max_depth, need the float value
   store(ID::max_depth, (float)atof(data_c[ID::max_depth]));
 
+  //for rock_socket_start_depth, need the float value
+  store(ID::rock_socket_start_depth, (float)atof(data_c[ID::rock_socket_start_depth]));
+
+  //for rock_socket_max_depth, need the float value
+  store(ID::rock_socket_max_depth, (float)atof(data_c[ID::rock_socket_max_depth]));
+
+  //for rock_socket_length, need the float value
+  store(ID::rock_socket_length, (float)atof(data_c[ID::rock_socket_length]));
+
   reset_flags();
 
   //Setup time synchronisation
@@ -399,6 +427,9 @@ void setup() {
     char value_c[50];
     for (int i = 0; i < NUM_HTTP_FIELDS; i++) {
       if (request->hasParam(HTTP_FIELDS[i])) {
+        if (HTTP_FIELD_IDS[i] == ID::rock_socket_status) {
+          rock_socket_status_changed = 1;
+        }
         request->getParam(HTTP_FIELDS[i])->value().toCharArray(value_c, 50);
         store(HTTP_FIELD_IDS[i], value_c);
         break;
@@ -416,6 +447,11 @@ void setup() {
 
   // set blast_mode first
   blast_mode = 1;
+
+  // set rock_socket_status
+  if (strcmp(data_c[ID::rock_socket_status], "on") == 0) {
+    rock_socket_status = 1;
+  }
 
   // send first email by default
   char blast_cbuff[50 * ID::LAST];
@@ -569,6 +605,33 @@ void loop() {
     store(ID::gps_status, status_offline);
   }
 
+  // detect change in rock socket mode
+  if (rock_socket_status_changed) {
+    Serial.println("Rock socket status has changed!");
+
+    if (strcmp(data_c[ID::rock_socket_status], "on") == 0) {
+      // went from off to on
+      if (data_f[ID::depth]) {
+        store(ID::rock_socket_start_depth, data_f[ID::depth]);
+      } else {
+        store(ID::rock_socket_start_depth, float(0.0));
+      }
+      rock_socket_status = 1;
+      
+    } else {
+      // went from on to off
+      store(ID::rock_socket_length, data_f[ID::rock_socket_length]-data_f[ID::rock_socket_max_depth]);
+
+      // reset start depth and max depth
+      store(ID::rock_socket_start_depth, float(0.0));
+      store(ID::rock_socket_max_depth, float(0.0));
+
+      rock_socket_status = 0;
+    }
+
+    rock_socket_status_changed = 0;
+  }
+
   if (dt_now > dt_next) {
     Serial.println("Data: ");
     for (int i = 0; i < ID::LAST; i++) {
@@ -614,6 +677,8 @@ void loop() {
   }
 
   if (strcmp(data_c[ID::prev_hole_num], data_c[ID::hole_num]) != 0) {
+    Serial.println("Current pile completed!");
+
     if (WiFi.status() != WL_CONNECTED) {
       WiFi.begin(NETWORK_SSID, NETWORK_PASS);
 
@@ -650,6 +715,11 @@ void loop() {
 
     //reset depth value
     store(ID::max_depth, float(0.0));
+
+    //reset rock socket values
+    store(ID::rock_socket_start_depth, float(0.0));
+    store(ID::rock_socket_max_depth, float(0.0));
+    store(ID::rock_socket_length, float(0.0));
 
     //update csv filename
     char new_csv_filename[100];

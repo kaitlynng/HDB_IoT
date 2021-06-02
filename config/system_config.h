@@ -48,47 +48,40 @@ enum ID {
     block_num, contract_num, ip_address, 
     severity, description, target_depth, 
     lat, longi, hole_dia, hole_num,
-    sensor_status, gps_status, datetime,
+    sensor_status, gps_status, rock_socket_status, datetime,
     depth, torque, incl_x, incl_y, max_depth,
+    rock_socket_start_depth, rock_socket_depth, rock_socket_max_depth, rock_socket_length,
     prev_dt, prev_hole_num,
     csv_filename,
     LAST
 };
-
-// const char* DEFAULT_VALUES[] = {
-//     "Crane#", "Crane#", "EventTitle", "EventID", "EventType",
-//     "###", "Contract#", "0.0.0.0", 
-//     "#", "description", "#.#####", 
-//     "#.#####", "#.#####", "#.#", "#",
-//     "default", "default", "YYYY-MM-DD_hh-mm-ss", 
-//     "#.#####", "#.#####", "#.#####", "#.#####", "#.#####", 
-//     "YYYY-MM-DD_hh-mm-ss", "#",
-//     "default.csv"
-// };
 
 const char* DEFAULT_VALUES[] = {
     "Crane1", "Crane1", "TengahDrill", "EV-183159-DRILL-01-DIGITALPILE-SANY-JURONG", "digitalpiling/System#Reading",
     "BLK306A", "21", "0.0.0.0",
     "6", "sensor readings", "0.0",
     "0.0", "0.0", "0.0", "G1-2",
-    "offline", "offline", "0000-00-00_00-00-00",
+    "offline", "offline", "off", "0000-00-00_00-00-00",
     "0.0", "0.0", "0.0", "0.0", "0.0",
+    "0.0", "0.0", "0.0", "0.0",
     "0000-00-00_00-00-00", "G1-2",
     "default.csv"
 };
 
 // filenames //
-#define NUM_STORAGE_FILENAMES   11
+#define NUM_STORAGE_FILENAMES   14
 #define FILENAME_SIZE           30
 const char* STORAGE_FILENAMES[] = {
     "/Hole_diameter", "/Hole_Number", "/Prev_Hole_Number", "/initialdate.txt", 
     "/MachineID.txt", "/MachineID.txt", "/Intended_depth.txt", "/depthMAX.txt",
+    "/rock_socket_status", "/rock_socket_start_depth", "/rock_socket_max_depth", "/rock_socket_length",
     "/BlockNO.txt", "/ContractNo.txt", "/CSVFilename.txt"
 };
 
 const int STORAGE_FILENAME_IDS[] = {
     ID::hole_dia, ID::hole_num, ID::prev_hole_num, ID::prev_dt, 
     ID::sender_id, ID::sensor_id, ID::target_depth, ID::max_depth,
+    ID::rock_socket_status, ID::rock_socket_start_depth, ID::rock_socket_max_depth, ID::rock_socket_length,
     ID::block_num, ID::contract_num, ID::csv_filename
 };
 
@@ -153,15 +146,15 @@ const int EMAIL_FIELD_IDS[] = {
 };
 
 // http req fields //
-#define NUM_HTTP_FIELDS     6
+#define NUM_HTTP_FIELDS     8
 const char* HTTP_FIELDS[] = {
     "input1", "input2", "input3", 
-    "input4", "input4", "input5", "input6", 
+    "input4", "input4", "input5", "input6", "rock_socket_status"
 };
 
 const int HTTP_FIELD_IDS[] = {
     ID::hole_dia, ID::hole_num, ID::target_depth, 
-    ID::sender_id, ID::sensor_id, ID::block_num, ID::contract_num
+    ID::sender_id, ID::sensor_id, ID::block_num, ID::contract_num, ID::rock_socket_status
 }; // HTML web page to handle 2 input fields (input1, input2)
 
 // json fields //
