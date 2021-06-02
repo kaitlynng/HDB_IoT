@@ -88,11 +88,14 @@ public:
         lower_bytes.toCharArray(modbus_data2, 16);       //stores lower bytes of message tochar array for conversion to floatingpoint in union
 
         CAN_data.i = strtoul(modbus_data1, NULL, 16);
+
         float upper = CAN_data.f;
+
         m_CAN_data.msb_i = CAN_data.i;
         m_CAN_data.msb_f = upper;
         static char message_data1[8];
         dtostrf(upper, 7, 2, message_data1);
+
         msb.concat(message_data1);
         
         CAN_data.i = strtoul(modbus_data2, NULL, 16);

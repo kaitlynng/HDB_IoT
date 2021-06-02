@@ -55,14 +55,25 @@ enum ID {
     LAST
 };
 
+// const char* DEFAULT_VALUES[] = {
+//     "Crane#", "Crane#", "EventTitle", "EventID", "EventType",
+//     "###", "Contract#", "0.0.0.0", 
+//     "#", "description", "#.#####", 
+//     "#.#####", "#.#####", "#.#", "#",
+//     "default", "default", "YYYY-MM-DD_hh-mm-ss", 
+//     "#.#####", "#.#####", "#.#####", "#.#####", "#.#####", 
+//     "YYYY-MM-DD_hh-mm-ss", "#",
+//     "default.csv"
+// };
+
 const char* DEFAULT_VALUES[] = {
-    "Crane#", "Crane#", "EventTitle", "EventID", "EventType",
-    "###", "Contract#", "0.0.0.0", 
-    "#", "description", "#.#####", 
-    "#.#####", "#.#####", "#.#", "#",
-    "default", "default", "YYYY-MM-DD_hh-mm-ss", 
-    "#.#####", "#.#####", "#.#####", "#.#####", "#.#####", 
-    "YYYY-MM-DD_hh-mm-ss", "#",
+    "Crane1", "Crane1", "TengahDrill", "EV-183159-DRILL-01-DIGITALPILE-SANY-JURONG", "digitalpiling/System#Reading",
+    "BLK306A", "21", "0.0.0.0",
+    "6", "sensor readings", "0.0",
+    "0.0", "0.0", "0.0", "G1-2",
+    "offline", "offline", "0000-00-00_00-00-00",
+    "0.0", "0.0", "0.0", "0.0", "0.0",
+    "0000-00-00_00-00-00", "G1-2",
     "default.csv"
 };
 
@@ -114,7 +125,7 @@ const char* CSV_FIELDS[] = {
     "Send ID", "Sensor ID", "Lattitude", "Longitude",
     "Event ID", "Event Type", "Sensor Status", 
     "Date and Time", "Severity", "Depth", "Torque", 
-    "InclineX", "InclineX", "InclineY", "Description"
+    "InclineX", "InclineY", "Description"
 };
 
 const int CSV_FIELD_IDS[] = {
@@ -130,8 +141,8 @@ const int CSV_FIELD_IDS[] = {
 const char* EMAIL_FIELDS[] = {
     "EventID", "Event type", "Description", "Severity", 
     "\nSenderID", "SensorID", "Starting time", 
-    "\nHole Nnmber", "Resource path", "", "Intended depth",
-    "\nTime", "Sensor status", "Max depth"
+    "\nPile ID", "Resource path", "", "Calculated Depth from Top of Casing (m)",
+    "\nTime", "Sensor status", "Measured (Max) Depth from Top of Casing (m)"
 };
 
 const int EMAIL_FIELD_IDS[] = {

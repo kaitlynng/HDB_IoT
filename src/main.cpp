@@ -356,6 +356,22 @@ void setup() {
     free(filename_c);
   }
 
+  // for initial csv, change csv filename if default
+  if (strcmp(data_c[ID::csv_filename], DEFAULT_VALUES[ID::csv_filename]) == 0) {
+    // create new csv filename
+    Serial.println("No existing csv file found! Creating new csv file...");
+    char new_csv_filename[100];
+    snprintf(new_csv_filename, 100, "%s_%s_%s.csv", data_c[ID::event_title], data_c[ID::prev_hole_num], data_c[ID::datetime]);
+    Serial.println(new_csv_filename);
+    store(ID::csv_filename, new_csv_filename);
+
+    //create new csv file
+    format_csv_header(NUM_CSV_FIELDS, CSV_FIELDS, cbuff_size, cbuff);
+    Serial.println(cbuff);
+    snprintf(csv_path, FILENAME_SIZE, "/%s", data_c[ID::csv_filename]);
+    sd_wrapper.write_file(csv_path, cbuff);
+  }
+
   //for max_depth, need the float value
   store(ID::max_depth, (float)atof(data_c[ID::max_depth]));
 
@@ -474,7 +490,7 @@ void loop() {
         } else if (ch == '\n') { // new message
 
           char email_subject[100];
-          snprintf(email_subject, 100, "%s/%s/%s", CONTRACT_NAME, blast_data_c[ID::contract_num], blast_data_c[ID::prev_hole_num]);
+          format_email_subject(blast_data_c, 100, email_subject);
           format_email_msg(NUM_EMAIL_FIELDS, EMAIL_FIELDS, EMAIL_FIELD_IDS, blast_data_c, cbuff_size, cbuff);
           Serial.println(email_subject);
           Serial.println(cbuff);
@@ -608,9 +624,8 @@ void loop() {
       blast_mode = 1;
 
     } else {
-
       char email_subject[100];
-      snprintf(email_subject, 100, "%s/%s/%s", CONTRACT_NAME, data_c[ID::contract_num], data_c[ID::prev_hole_num]);
+      format_email_subject(data_c, 100, email_subject);
       format_email_msg(NUM_EMAIL_FIELDS, EMAIL_FIELDS, EMAIL_FIELD_IDS, data_c, cbuff_size, cbuff);
       Serial.println(email_subject);
       Serial.println(cbuff);

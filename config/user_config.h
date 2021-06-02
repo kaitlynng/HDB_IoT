@@ -3,6 +3,8 @@
 
 #include <Arduino.h>
 
+#define CONTRACT_NAME   "TENGAHPAC07/D/027"
+
 // network credentials
 #define NETWORK_SSID    "AIDrivers SG - 2.4G" // "Ng-fam-weefee-extraordinaire" // "AndroidAPf2b2" // "HDB4" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
 #define NETWORK_PASS    "@1Drivers75" // "tecknam67941827" // "rfkv0877" // "hdbdatalogger" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
@@ -40,8 +42,6 @@ UAT: ssl://192.168.8.38:9884
 #define DEFAULT_TABLE   "Test4"
 const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *server* here// to check daily  //216,219,81,80//52,76,27,242
 
-#define CONTRACT_NAME   "AMK 265896"
-
 #define NTP_SERVER      "asia.pool.ntp.org"
 
 
@@ -62,7 +62,7 @@ const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com"}; //aidrivers.demo@gm
 
 #define UPDATE_RATE     10 //seconds
 
-#define SQL_FLAG        false
+#define SQL_FLAG        true
 #define MQTT_FLAG       true
 #define EMAIL_FLAG      true
 

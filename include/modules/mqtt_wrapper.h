@@ -126,8 +126,6 @@ private:
 
     int m_timeout; // seconds, 0: do not timeout
 
-    
-
     bool active_flag;
 };
 

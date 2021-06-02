@@ -78,6 +78,11 @@ int format_csv_header(int num_fields, const char* fields[], const int cbuff_size
     return cx;
 }
 
+int format_email_subject(char (*data)[50], const int cbuff_size, char* cbuff) {
+    int cx = snprintf(cbuff, cbuff_size, "%s/%s/%s/%s", CONTRACT_NAME, data[ID::contract_num], data[ID::block_num], data[ID::prev_hole_num]);
+    return cx;
+}
+
 int format_email_msg(const int num_fields, const char* fields[], const int tgt_ids[], char (*data)[50],
                       const int cbuff_size, char* cbuff) {
     
