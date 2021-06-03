@@ -36,7 +36,7 @@
 #define GPS_TXPIN       17
 #define GPS_BAUDRATE    9600
 
-#define GPS_TIMEOUT     60 // seconds 
+#define GPS_TIMEOUT     30 // seconds 
 
 // OLED params //
 #define SCREEN_WIDTH    128
@@ -55,16 +55,16 @@ enum ID {
     LAST
 };
 
-// const char* DEFAULT_VALUES[] = {
-//     "Crane#", "Crane#", "EventTitle", "EventID", "EventType",
-//     "###", "Contract#", "0.0.0.0", 
-//     "#", "description", "#.#####", 
-//     "#.#####", "#.#####", "#.#", "#",
-//     "default", "default", "YYYY-MM-DD_hh-mm-ss", 
-//     "#.#####", "#.#####", "#.#####", "#.#####", "#.#####", 
-//     "YYYY-MM-DD_hh-mm-ss", "#",
-//     "default.csv"
-// };
+const char* ID_NAMES[] = {
+    "sender_id", "sensor_id", "event_title", "event_id", "event_type",
+    "block_num", "contract_num", "ip_address", 
+    "severity", "description", "target_depth",
+    "lat", "longi", "hole_dia", "hole_num",
+    "sensor_status", "gps_status", "datetime",
+    "depth", "torque", "incl_x", "incl_y", "max_depth",
+    "prev_dt", "prev_hole_num",
+    "csv_filename"
+};
 
 const char* DEFAULT_VALUES[] = {
     "Crane1", "Crane1", "TengahDrill", "EV-183159-DRILL-01-DIGITALPILE-SANY-JURONG", "digitalpiling/System#Reading",
@@ -153,10 +153,10 @@ const int EMAIL_FIELD_IDS[] = {
 };
 
 // http req fields //
-#define NUM_HTTP_FIELDS     6
+#define NUM_HTTP_FIELDS     7
 const char* HTTP_FIELDS[] = {
     "input1", "input2", "input3", 
-    "input4", "input4", "input5", "input6", 
+    "input4", "input4", "input5", "input6"
 };
 
 const int HTTP_FIELD_IDS[] = {

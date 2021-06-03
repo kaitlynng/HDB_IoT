@@ -22,19 +22,6 @@ const int SECONDARY_DNS[] = {0, 0, 0, 0};
 #define MQTT_CLIENT         "ESP32Client"
 #define MQTT_TOPIC          "Crane/1"
 
-//extern PubSubClient client;
-/*
- Broker URL is:
-Production: ssl://192.168.8.35:9884
-UAT: ssl://192.168.8.38:9884 
- */
-
-// // adafruit IO server (CURRENTLY NOT USED)
-// #define AIO_SERVER      "io.adafruit.com"
-// #define AIO_SERVERPORT  1883                   // use 8883 for SSL
-// #define AIO_USERNAME    "Estherdragon"
-// #define AIO_KEY         "aio_sHiz93It6x7SCfc6Jeic0yg2yxFp"
-
 // SQL credentials
 #define MYSQL_USER      "leo"
 #define MYSQL_PASS      "lqNZ3K]2U0)br5"
@@ -57,13 +44,15 @@ const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *serve
 //#define EMAIL_NUM_RECIPIENTS    3
 //const String EMAIL_RECIPIENTS[EMAIL_NUM_RECIPIENTS] = {"aidrivers.crane@gmail.com", "radiancekw@gmail.com", "tankangjie@gmail.com"}; //aidrivers.demo@gmail.com
 
-#define EMAIL_NUM_RECIPIENTS    1
-const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com"}; //aidrivers.demo@gmail.com
+#define EMAIL_NUM_RECIPIENTS    2
+const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "nguyen2001ag2@gmail.com"}; //aidrivers.demo@gmail.com
 
 #define UPDATE_RATE     10 //seconds
 
 #define SQL_FLAG        true
 #define MQTT_FLAG       true
 #define EMAIL_FLAG      true
+
+#define DEBUG_FLAG      false
 
 #endif //USER_CONFIG_H_
