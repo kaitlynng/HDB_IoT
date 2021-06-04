@@ -6,7 +6,7 @@
 #define CONTRACT_NAME   "TENGAHPAC07/D/027"
 
 // network credentials
-#define NETWORK_SSID    "HDB4"
+#define NETWORK_SSID    "HDB5"
 #define NETWORK_PASS    "hdbdatalogger"
 
 const int LOCAL_IP_ADDRESS[] = {192, 168, 0, 184}; 
