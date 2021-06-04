@@ -6,7 +6,7 @@
 #define CONTRACT_NAME   "TENGAHPAC07/D/027"
 
 // network credentials
-#define NETWORK_SSID    "HDB5"
+#define NETWORK_SSID    "HDB4"
 #define NETWORK_PASS    "hdbdatalogger"
 
 const int LOCAL_IP_ADDRESS[] = {192, 168, 0, 184}; 
@@ -45,7 +45,7 @@ const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *serve
 //const String EMAIL_RECIPIENTS[EMAIL_NUM_RECIPIENTS] = {"aidrivers.crane@gmail.com", "radiancekw@gmail.com", "tankangjie@gmail.com"}; //aidrivers.demo@gmail.com
 
 #define EMAIL_NUM_RECIPIENTS    2
-const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "nguyen2001ag2@gmail.com"}; //aidrivers.demo@gmail.com
+const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "AMKN2C32A_PileDataLogger@hdb.gov.sg"}; //aidrivers.demo@gmail.com
 
 #define UPDATE_RATE     10 //seconds
 
@@ -53,6 +53,6 @@ const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "nguyen2001ag2@gmail
 #define MQTT_FLAG       true
 #define EMAIL_FLAG      true
 
-#define DEBUG_FLAG      false
+#define DEBUG_FLAG      true
 
 #endif //USER_CONFIG_H_
