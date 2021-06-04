@@ -549,8 +549,9 @@ void loop() {
   }
 
   dt_now = rtc.now();
-  
-  store(ID::datetime, dt_now.toString(datetime_fmt)); //check cast!
+
+  char dt_buf[] = datetime_fmt;
+  store(ID::datetime, dt_now.toString(dt_buf)); //check cast!
 
   //update all data values
   for (int i = 0; i < can_wrapper.get_num_frames_in_queue(); i++) {
