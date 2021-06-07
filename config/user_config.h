@@ -53,6 +53,6 @@ const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "nguyen2001ag2@gmail
 #define MQTT_FLAG       true
 #define EMAIL_FLAG      true
 
-#define DEBUG_FLAG      false
+#define DEBUG_FLAG      true
 
 #endif //USER_CONFIG_H_
