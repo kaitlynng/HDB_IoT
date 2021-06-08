@@ -26,7 +26,7 @@ public:
         }
 
         Serial.print("Connecting to SQL...  ");
-        if (conn.connect(m_server_addr, 3306, m_user, m_pass)) {
+        if (conn.connect(m_server_addr, 3306, m_user, m_pass)) {  // 3306 is mySQL protocol port
             Serial.println("OK.");
         } else {
             Serial.println("FAILED.");

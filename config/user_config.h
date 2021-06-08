@@ -57,8 +57,8 @@ const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *serve
 //#define EMAIL_NUM_RECIPIENTS    3
 //const String EMAIL_RECIPIENTS[EMAIL_NUM_RECIPIENTS] = {"aidrivers.crane@gmail.com", "radiancekw@gmail.com", "tankangjie@gmail.com"}; //aidrivers.demo@gmail.com
 
-#define EMAIL_NUM_RECIPIENTS    1
-const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com"}; //aidrivers.demo@gmail.com
+#define EMAIL_NUM_RECIPIENTS    2
+const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "nguyen2001ag2@gmail.com"}; //aidrivers.demo@gmail.com
 
 #define UPDATE_RATE     10 //seconds
 

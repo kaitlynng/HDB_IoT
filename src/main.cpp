@@ -3,12 +3,13 @@
 
 #include <Arduino.h>
 #include <string>
-#include <time.h>  //time library
-#include <Wire.h> //communicate with i2c devices
-#include <WiFi.h> //wifi library from the ESP32 
+#include <time.h>    //time library
+#include <Wire.h>    //communicate with i2c devices
+#include <WiFi.h>    //Wifi library from the ESP32 
+
 // #include <SoftwareSerial.h>
 
-#include <RTClib.h> //a fork of Jeelab's RTC library for Arduino
+#include <RTClib.h>            //a fork of Jeelab's RTC library for Arduino
 
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> //Async HTTP and WebSocket Server for ESP8266 Arduino
@@ -536,12 +537,11 @@ void loop() {
     Serial.println("Sync rtc time!");
     sync_rtc_time();
     next_ntp_update = rtc.now() + ntp_interval;
-  }
+  } 
 
   dt_now = rtc.now();
   
   store(ID::datetime, dt_now.toString(datetime_fmt)); //check cast!
-
   //update all data values
   for (int i = 0; i < can_wrapper.get_num_frames_in_queue(); i++) {
     if (can_wrapper.poll(can_data)) {
