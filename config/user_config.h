@@ -24,11 +24,13 @@ const int SECONDARY_DNS[] = {0, 0, 0, 0};
 #define MQTT_TOPIC       "$aws/things/" DEVICE_NAME "/shadow/update"
 
 // SQL credentials
-#define MYSQL_USER      "leo"
-#define MYSQL_PASS      "lqNZ3K]2U0)br5"
+#define MYSQL_HOSTNAME  "aidrivers-hdb-01.c3yqyazj0wp1.us-east-2.rds.amazonaws.com"
+#define MYSQL_PORT      3306
+
+#define MYSQL_USER      "admin"
+#define MYSQL_PASS      "a1Drivers75"
 #define DEFAULT_DB      "leo_1"
 #define DEFAULT_TABLE   "Test4"
-const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *server* here// to check daily  //216,219,81,80//52,76,27,242
 
 // NTP server
 #define NTP_SERVER      "asia.pool.ntp.org"

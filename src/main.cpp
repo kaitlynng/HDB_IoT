@@ -12,9 +12,6 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> //Async HTTP and WebSocket Server for ESP8266 Arduino
 
-// #include <Adafruit_GFX.h>
-// #include <Adafruit_SSD1306.h>
-
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
@@ -33,6 +30,7 @@
 
 
 WiFiClient client; // should move WiFiSecureClient out from mqtt wrapper too
+
 RTC_DS3231 rtc;
 
 AsyncWebServer server(80);
@@ -60,7 +58,7 @@ CanWrapper can_wrapper(CAN_RXPIN, CAN_TXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBP
 GpsWrapper gps_wrapper(GPS_RXPIN, GPS_TXPIN, GPS_BAUDRATE);
 SdWrapper sd_wrapper(SD_CS);
 
-SqlWrapper sql_wrapper(MYSQL_SERVER_ADDRESS, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
+SqlWrapper sql_wrapper(MYSQL_HOSTNAME, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
 MqttWrapper mqtt_wrapper(MQTT_ENDPOINT, MQTT_PORT, MQTT_CLIENT, MQTT_TIMEOUT, MQTT_FLAG);
 EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT, EMAIL_FLAG);
 
@@ -314,6 +312,7 @@ void setup() {
   //setup modules
   can_wrapper.setup();
   sql_wrapper.setup();
+
   gps_wrapper.setup();
   sd_wrapper.setup();
   email_wrapper.setup(); //doesn't do anything, for standardisation
