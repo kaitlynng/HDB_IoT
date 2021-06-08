@@ -7,13 +7,6 @@
 #include <ArduinoJson.h>
 #include <WiFi.h>
 
-
-// void strncat_fast(char* dest, char* src, char* last, size_t n) {
-//     while (*dest) dest++;
-//     while (*dest++ = *src++);
-//     return --dest;
-// }
-
 DateTime tm2DateTime(struct tm t) {
     return DateTime(t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
 }
