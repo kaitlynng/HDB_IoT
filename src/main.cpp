@@ -5,7 +5,7 @@
 #include <string>
 #include <time.h>  //time library
 #include <Wire.h> //communicate with i2c devices
-#include <WiFiClientSecure.h> //wifi library from the ESP32 
+#include <WiFiClientSecure.h>
 
 #include <RTClib.h> //a fork of Jeelab's RTC library for Arduino
 
@@ -19,6 +19,8 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
+#include "modules/wifi_wrapper.h"
+
 #include "modules/can_wrapper.h"
 #include "modules/gps_wrapper.h"
 #include "modules/sd_wrapper.h"
@@ -29,7 +31,8 @@
 
 #include "utils/fmt_util.h"
 
-WiFiClient client;                 // Use this for WiFi instead of EthernetClient
+
+WiFiClient client; // should move WiFiSecureClient out from mqtt wrapper too
 RTC_DS3231 rtc;
 
 AsyncWebServer server(80);
@@ -50,14 +53,9 @@ char aws_cert_ca[2000];
 char aws_cert_crt[2000];
 char aws_cert_private[2000];
 
-IPAddress local_ip(LOCAL_IP_ADDRESS[0], LOCAL_IP_ADDRESS[1], LOCAL_IP_ADDRESS[2], LOCAL_IP_ADDRESS[3]);
-IPAddress gateway(GATEWAY_ADDRESS[0], GATEWAY_ADDRESS[1], GATEWAY_ADDRESS[2], GATEWAY_ADDRESS[3]);
-
-IPAddress subnet(SUBNET_ADDRESS[0], SUBNET_ADDRESS[1], SUBNET_ADDRESS[2], SUBNET_ADDRESS[3]);
-IPAddress primary_dns(PRIMARY_DNS[0], PRIMARY_DNS[1], PRIMARY_DNS[2], PRIMARY_DNS[3]);
-IPAddress secondary_dns(SECONDARY_DNS[0], SECONDARY_DNS[1], SECONDARY_DNS[2], SECONDARY_DNS[3]);
-
 // objects
+WiFiWrapper wifi_wrapper(NETWORK_SSID, NETWORK_PASS, NETWORK_TIMEOUT);
+
 CanWrapper can_wrapper(CAN_RXPIN, CAN_TXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
 GpsWrapper gps_wrapper(GPS_RXPIN, GPS_TXPIN, GPS_BAUDRATE);
 SdWrapper sd_wrapper(SD_CS);
@@ -206,43 +204,6 @@ void parse_can(String can_id, String msb, String lsb) {
   }
 }
 
-void print_network_details() {
-  Serial.print("Local IP: ");
-  Serial.println(WiFi.localIP());
-
-  Serial.print("Subnet Mask: ");
-  Serial.println(WiFi.subnetMask());
-
-  Serial.print("Gateway IP: ");
-  Serial.println(WiFi.gatewayIP());
-
-  Serial.print("DNS 1: ");
-  Serial.println(WiFi.dnsIP(0));
-  Serial.print("DNS 2: ");
-  Serial.println(WiFi.dnsIP(1));
-}
-
-void WiFi_connect() {
-  unsigned long startTime = millis();
-
-  Serial.printf("Connecting to %s ", NETWORK_SSID);
-  WiFi.begin(NETWORK_SSID, NETWORK_PASS);
-
-  // try to connect every 0.1s for wifi connection timeout
-  while (millis() - startTime < NETWORK_TIMEOUT * 1000) {
-    if (WiFi.status() == WL_CONNECTED) break;
-    delay(100);
-    Serial.print(".");
-  }
-
-  switch (WiFi.status()) 
-  {
-    case 6 : Serial.print("Wifi not connected!"); break;
-    case 3 : Serial.println("Wifi connected! Continue with ops"); break;
-    case 1 : Serial.println("No wifi connected"); break; //ESP.restart(); break; //append_file(SD, "/error_log", "No wifi \n");
-    default : Serial.print("Unknown code: "); Serial.println(WiFi.status());
-  }
-}
 
 bool connect_rtc() {
   long stamp = millis();
@@ -261,7 +222,7 @@ bool connect_rtc() {
 void sync_rtc_time() {
   Serial.print("Adjusting time...");
 
-  if (WiFi.status() != 3) {
+  if (wifi_wrapper.get_wifi_status() != 3) {
     Serial.println("No WiFi connection! Unable to adjust time.");
     return;
   }
@@ -303,19 +264,12 @@ void setup() {
     data_updated[i] = false;
   }
 
-  //connect to WiFi
-  WiFi.mode(WIFI_STA);
-  // Configure static ip address
-
-  if (!WiFi.config(local_ip, gateway, subnet, primary_dns, secondary_dns)) {
-    Serial.println("WARNING: STA Failed to configure");
-  }
-
-  WiFi_connect();
-  // if (DEBUG_FLAG) print_network_details();
+  wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
+  wifi_wrapper.setup();
+  
 
   char ip_cbuff[20];
-  ip2String(WiFi.localIP(), ip_cbuff);
+  wifi_wrapper.get_local_ip(ip_cbuff);
   store(ID::ip_address, ip_cbuff); // probably need error handling
 
   // setup Arduino OTA
@@ -463,7 +417,7 @@ void setup() {
 void loop() {
   ArduinoOTA.handle();
 
-  if ((WiFi.status() == WL_CONNECTED) && blast_mode) {
+  if ((wifi_wrapper.get_wifi_status() == WL_CONNECTED) && blast_mode) {
     // do a blast
     Serial.println("WiFi connection restored! Blasting messages...");
 
@@ -609,12 +563,12 @@ void loop() {
       Serial.println("....................................");
     }
 
-    if (WiFi.status() != WL_CONNECTED) {
+    if (wifi_wrapper.get_wifi_status() != WL_CONNECTED) {
       if (blast_mode == 0) {
         Serial.println("WARNING: WiFi connection dropped, switching to blast mode!");
       }
       
-      WiFi.begin(NETWORK_SSID, NETWORK_PASS);
+      wifi_wrapper.connect_unblocking();
 
       char blast_cbuff[50 * ID::LAST];
       format_blast_msg(ID::LAST, data_c, sizeof(blast_cbuff), blast_cbuff);
@@ -647,8 +601,8 @@ void loop() {
   }
 
   if (strcmp(data_c[ID::prev_hole_num], data_c[ID::hole_num]) != 0) {
-    if (WiFi.status() != WL_CONNECTED) {
-      WiFi.begin(NETWORK_SSID, NETWORK_PASS);
+    if (wifi_wrapper.get_wifi_status() != WL_CONNECTED) {
+      wifi_wrapper.connect_unblocking();
 
       char blast_cbuff[50 * ID::LAST];
       format_blast_msg(ID::LAST, data_c, sizeof(blast_cbuff), blast_cbuff);

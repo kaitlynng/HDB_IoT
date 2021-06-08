@@ -18,10 +18,6 @@ DateTime tm2DateTime(struct tm t) {
     return DateTime(t.tm_year+1900, t.tm_mon+1, t.tm_mday, t.tm_hour, t.tm_min, t.tm_sec);
 }
 
-void ip2String(IPAddress ip, char* cbuff) {
-    sprintf(cbuff, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
-}
-
 int format_blast_msg(const int num_fields, char (*data)[50], const int cbuff_size, char* cbuff) {
     int cx = 0;
     for (int i = 0; i < num_fields; i++) {
