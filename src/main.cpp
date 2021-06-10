@@ -1,6 +1,3 @@
-#include "../config/system_config.h"
-#include "../config/user_config.h"
-
 #include <Arduino.h>
 #include <string>
 #include <time.h>  //time library
@@ -13,12 +10,17 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> //Async HTTP and WebSocket Server for ESP8266 Arduino
 
-// #include <Adafruit_GFX.h>
-// #include <Adafruit_SSD1306.h>
-
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+
+#include "../config/system_config.h"
+
+#if __has_include("../config/user_config.h")
+#  include "../config/user_config.h"
+#else
+#  include "../config/default_user_config.h"
+#endif
 
 #include "modules/can_wrapper.h"
 #include "modules/gps_wrapper.h"
@@ -43,7 +45,7 @@ const TimeSpan ntp_interval = TimeSpan(RTC_SYNC_RATE);
 const TimeSpan gps_interval = TimeSpan(GPS_TIMEOUT);
 const TimeSpan can_interval = TimeSpan(CAN_TIMEOUT); 
 
-char datetime_fmt[20] = "YYYY-MM-DD_hh-mm-ss";
+const char datetime_fmt[20] = "YYYY-MM-DD_hh-mm-ss";
 char status_online[7] = "online";
 char status_offline[8] = "offline";
 
@@ -71,6 +73,7 @@ EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT, EMAIL_FLAG);
 // variables
 String can_data[3]; // {can_id, msb, lsb}
 double gps_data[2]; // {lat, longi}
+char dt_buf[50];
 
 const int cbuff_size = 800;
 char cbuff[cbuff_size] = "";
@@ -369,11 +372,13 @@ void setup() {
   // for initial datetime, change to current datetime if default
   if (strcmp(data_c[ID::prev_dt], DEFAULT_VALUES[ID::prev_dt]) == 0) {
     Serial.println("Setting default datetime to current datetime...");
-    store(ID::prev_dt, rtc.now().toString(datetime_fmt));
+    strncpy(dt_buf, datetime_fmt, 50);
+    store(ID::prev_dt, rtc.now().toString(dt_buf));
   }
 
   // set datetime
-  store(ID::datetime, rtc.now().toString(datetime_fmt));
+  strncpy(dt_buf, datetime_fmt, 50);
+  store(ID::datetime, rtc.now().toString(dt_buf));
 
   // for initial csv, change csv filename if default
   if (strcmp(data_c[ID::csv_filename], DEFAULT_VALUES[ID::csv_filename]) == 0) {
@@ -550,7 +555,7 @@ void loop() {
 
   dt_now = rtc.now();
 
-  char dt_buf[] = datetime_fmt;
+  strncpy(dt_buf, datetime_fmt, 50);
   store(ID::datetime, dt_now.toString(dt_buf)); //check cast!
 
   //update all data values
