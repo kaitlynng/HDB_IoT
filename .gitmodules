@@ -1,0 +1,3 @@
+[submodule "lib/MySQL_Connector_Arduino"]
+	path = lib/MySQL_Connector_Arduino
+	url = git@github.com:kaitlynng/MySQL_Connector_Arduino.git
