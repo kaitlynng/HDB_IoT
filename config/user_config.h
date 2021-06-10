@@ -16,7 +16,7 @@ const int PRIMARY_DNS[] = {192, 168, 0, 1};
 const int SECONDARY_DNS[] = {0, 0, 0, 0};
 
 // MQTT server
-#define MQTT_ENDPOINT    "a132xxzx3351g7-ats.iot.us-east-2.amazonaws.com"
+#define MQTT_ENDPOINT    "a132xxzx3351g7-ats.iot.ap-southeast-1.amazonaws.com"
 #define MQTT_PORT        8883
 #define MQTT_CLIENT      LOGGER_ID
 #define MQTT_TOPIC       "$aws/things/" LOGGER_ID "/shadow/update"
