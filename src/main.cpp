@@ -1,6 +1,3 @@
-#include "../config/system_config.h"
-#include "../config/user_config.h"
-
 #include <Arduino.h>
 #include <string>
 #include <time.h>  //time library
@@ -16,8 +13,15 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#include "modules/wifi_wrapper.h"
+#include "../config/system_config.h"
 
+#if __has_include("../config/user_config.h")
+#  include "../config/user_config.h"
+#else
+#  include "../config/default_user_config.h"
+#endif
+
+#include "modules/wifi_wrapper.h"
 #include "modules/can_wrapper.h"
 #include "modules/gps_wrapper.h"
 #include "modules/sd_wrapper.h"
@@ -392,8 +396,6 @@ void setup() {
   server.begin();
 
   Serial.println("Mirror Demo - ESP32-Arduino-CAN");
-  // display.begin(SSD1306_SWITCHCAPVCC, 0x3c);
-  // display.clearDisplay();
 
   // set blast_mode first
   blast_mode = 1;
