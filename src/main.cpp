@@ -253,7 +253,6 @@ void setup() {
   We set our ESP32 to wake up every 5 seconds
   */
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  //void MQTT_connect();
   Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
   esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
   Serial.println("Configured all RTC Peripherals to be powered down in sleep");  
@@ -269,7 +268,6 @@ void setup() {
   wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
   wifi_wrapper.setup();
   
-
   char ip_cbuff[20];
   wifi_wrapper.get_local_ip(ip_cbuff);
   store(ID::ip_address, ip_cbuff); // probably need error handling
