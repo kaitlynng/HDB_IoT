@@ -1,25 +1,27 @@
-#include "../config/system_config.h"
-#include "../config/user_config.h"
-
 #include <Arduino.h>
 #include <string>
 #include <time.h>  //time library
 #include <Wire.h> //communicate with i2c devices
-#include <WiFi.h> //wifi library from the ESP32 
-// #include <SoftwareSerial.h>
+#include <WiFiClientSecure.h>
 
 #include <RTClib.h> //a fork of Jeelab's RTC library for Arduino
 
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> //Async HTTP and WebSocket Server for ESP8266 Arduino
 
-// #include <Adafruit_GFX.h>
-// #include <Adafruit_SSD1306.h>
-
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
+#include "../config/system_config.h"
+
+#if __has_include("../config/user_config.h")
+#  include "../config/user_config.h"
+#else
+#  include "../config/default_user_config.h"
+#endif
+
+#include "modules/wifi_wrapper.h"
 #include "modules/can_wrapper.h"
 #include "modules/gps_wrapper.h"
 #include "modules/sd_wrapper.h"
@@ -30,7 +32,9 @@
 
 #include "utils/fmt_util.h"
 
-WiFiClient client;                 // Use this for WiFi instead of EthernetClient
+
+WiFiClient client; // should move WiFiSecureClient out from mqtt wrapper too
+
 RTC_DS3231 rtc;
 
 AsyncWebServer server(80);
@@ -43,40 +47,32 @@ const TimeSpan ntp_interval = TimeSpan(RTC_SYNC_RATE);
 const TimeSpan gps_interval = TimeSpan(GPS_TIMEOUT);
 const TimeSpan can_interval = TimeSpan(CAN_TIMEOUT); 
 
-char datetime_fmt[20] = "YYYY-MM-DD_hh-mm-ss";
+const char datetime_fmt[20] = "YYYY-MM-DD_hh-mm-ss";
 char status_online[7] = "online";
 char status_offline[8] = "offline";
 
-char m_blast_fname[50];
-char m_blast_email_fname[50];
-
-char unique_char = '$';
-
-IPAddress local_ip(LOCAL_IP_ADDRESS[0], LOCAL_IP_ADDRESS[1], LOCAL_IP_ADDRESS[2], LOCAL_IP_ADDRESS[3]);
-IPAddress gateway(GATEWAY_ADDRESS[0], GATEWAY_ADDRESS[1], GATEWAY_ADDRESS[2], GATEWAY_ADDRESS[3]);
-
-IPAddress subnet(SUBNET_ADDRESS[0], SUBNET_ADDRESS[1], SUBNET_ADDRESS[2], SUBNET_ADDRESS[3]);
-IPAddress primary_dns(PRIMARY_DNS[0], PRIMARY_DNS[1], PRIMARY_DNS[2], PRIMARY_DNS[3]);
-IPAddress secondary_dns(SECONDARY_DNS[0], SECONDARY_DNS[1], SECONDARY_DNS[2], SECONDARY_DNS[3]);
+char aws_cert_ca[2000];
+char aws_cert_crt[2000];
+char aws_cert_private[2000];
 
 // objects
+WiFiWrapper wifi_wrapper(NETWORK_SSID, NETWORK_PASS, NETWORK_TIMEOUT);
+
 CanWrapper can_wrapper(CAN_RXPIN, CAN_TXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
 GpsWrapper gps_wrapper(GPS_RXPIN, GPS_TXPIN, GPS_BAUDRATE);
 SdWrapper sd_wrapper(SD_CS);
 
-SqlWrapper sql_wrapper(MYSQL_SERVER_ADDRESS, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
-MqttWrapper mqtt_wrapper(client, MQTT_SERVER, MQTT_SERVER_PORT, MQTT_CLIENT, MQTT_TIMEOUT, MQTT_FLAG);
+SqlWrapper sql_wrapper(MYSQL_HOSTNAME, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
+MqttWrapper mqtt_wrapper(MQTT_ENDPOINT, MQTT_PORT, MQTT_CLIENT, MQTT_TIMEOUT, MQTT_FLAG);
 EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT, EMAIL_FLAG);
 
 // variables
 String can_data[3]; // {can_id, msb, lsb}
 double gps_data[2]; // {lat, longi}
+char dt_buf[50];
 
 const int cbuff_size = 800;
 char cbuff[cbuff_size] = "";
-
-const int file_cbuff_size = 8000;
-char file_cbuff[file_cbuff_size] = "";
 
 char data_c[ID::LAST][50];
 uint32_t data_i[ID::LAST];
@@ -93,8 +89,6 @@ DateTime last_can_update;
 DateTime last_gps_update;
 
 DateTime next_ntp_update;
-DateTime next_can_update;
-DateTime next_gps_update;
 
 int is_sensor_online = 0;
 int is_gps_online = 0;
@@ -212,27 +206,6 @@ void parse_can(String can_id, String msb, String lsb) {
   }
 }
 
-void WiFi_connect() {
-  unsigned long startTime = millis();
-
-  Serial.printf("Connecting to %s ", NETWORK_SSID);
-  WiFi.begin(NETWORK_SSID, NETWORK_PASS);
-
-  // try to connect every 0.1s for wifi connection timeout
-  while (millis() - startTime < NETWORK_TIMEOUT * 1000) {
-    if (WiFi.status() == WL_CONNECTED) break;
-    delay(100);
-    Serial.print(".");
-  }
-
-  switch (WiFi.status()) 
-  {
-    case 6 : Serial.print("Wifi not connected!"); break;
-    case 3 : Serial.println("Wifi connected! Continue with ops"); break;
-    case 1 : Serial.println("No wifi connected"); break; //ESP.restart(); break; //append_file(SD, "/error_log", "No wifi \n");
-    default : Serial.print("Unknown code: "); Serial.println(WiFi.status());
-  }
-}
 
 bool connect_rtc() {
   long stamp = millis();
@@ -251,7 +224,7 @@ bool connect_rtc() {
 void sync_rtc_time() {
   Serial.print("Adjusting time...");
 
-  if (WiFi.status() != 3) {
+  if (wifi_wrapper.get_wifi_status() != 3) {
     Serial.println("No WiFi connection! Unable to adjust time.");
     return;
   }
@@ -293,19 +266,12 @@ void setup() {
     data_updated[i] = false;
   }
 
-  strncpy(m_blast_fname, BLAST_FILENAME, 50);
-  strncpy(m_blast_email_fname, BLAST_EMAIL_FILENAME, 50);
-
-  //connect to WiFi
-  WiFi.mode(WIFI_STA);
-  // Configure static ip address
-  if (!WiFi.config(local_ip, gateway, subnet, primary_dns, secondary_dns)) {
-    Serial.println("WARNING: STA Failed to configure");
-  }
-  WiFi_connect();
+  wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
+  wifi_wrapper.setup();
+  
 
   char ip_cbuff[20];
-  ip2String(WiFi.localIP(), ip_cbuff);
+  wifi_wrapper.get_local_ip(ip_cbuff);
   store(ID::ip_address, ip_cbuff); // probably need error handling
 
   // setup Arduino OTA
@@ -350,9 +316,16 @@ void setup() {
   //setup modules
   can_wrapper.setup();
   sql_wrapper.setup();
+
   gps_wrapper.setup();
   sd_wrapper.setup();
   email_wrapper.setup(); //doesn't do anything, for standardisation
+
+  // read mqtt certificates
+  sd_wrapper.read_file(AWS_CERT_CA_FILENAME, 2000, aws_cert_ca);
+  sd_wrapper.read_file(AWS_CERT_CRT_FILENAME, 2000, aws_cert_crt);
+  sd_wrapper.read_file(AWS_CERT_PRIVATE_FILENAME, 2000, aws_cert_private);
+  mqtt_wrapper.set_certificates(aws_cert_ca, aws_cert_crt, aws_cert_private);
   mqtt_wrapper.setup();
 
   for (int i = 0; i < NUM_STORAGE_FILENAMES; i++) {
@@ -369,11 +342,13 @@ void setup() {
   // for initial datetime, change to current datetime if default
   if (strcmp(data_c[ID::prev_dt], DEFAULT_VALUES[ID::prev_dt]) == 0) {
     Serial.println("Setting default datetime to current datetime...");
-    store(ID::prev_dt, rtc.now().toString(datetime_fmt));
+    strncpy(dt_buf, datetime_fmt, 50);
+    store(ID::prev_dt, rtc.now().toString(dt_buf));
   }
 
   // set datetime
-  store(ID::datetime, rtc.now().toString(datetime_fmt));
+  strncpy(dt_buf, datetime_fmt, 50);
+  store(ID::datetime, rtc.now().toString(dt_buf));
 
   // for initial csv, change csv filename if default
   if (strcmp(data_c[ID::csv_filename], DEFAULT_VALUES[ID::csv_filename]) == 0) {
@@ -421,8 +396,6 @@ void setup() {
   server.begin();
 
   Serial.println("Mirror Demo - ESP32-Arduino-CAN");
-  // display.begin(SSD1306_SWITCHCAPVCC, 0x3c);
-  // display.clearDisplay();
 
   // set blast_mode first
   blast_mode = 1;
@@ -430,7 +403,7 @@ void setup() {
   // send first email by default
   char blast_cbuff[50 * ID::LAST];
   format_blast_msg(ID::LAST, data_c, sizeof(blast_cbuff), blast_cbuff);
-  sd_wrapper.append_file(m_blast_email_fname, blast_cbuff);
+  sd_wrapper.append_file(BLAST_EMAIL_FILENAME, blast_cbuff);
 
   dt_now = rtc.now();
   dt_next = rtc.now();
@@ -445,7 +418,7 @@ void setup() {
 void loop() {
   ArduinoOTA.handle();
 
-  if ((WiFi.status() == WL_CONNECTED) && blast_mode) {
+  if ((wifi_wrapper.get_wifi_status() == WL_CONNECTED) && blast_mode) {
     // do a blast
     Serial.println("WiFi connection restored! Blasting messages...");
 
@@ -455,8 +428,8 @@ void loop() {
     int id = 0;
     unsigned int ptr = 0;
 
-    if (sd_wrapper.is_file_available(m_blast_fname)) {
-      File blast_file = sd_wrapper.get_file(m_blast_fname);
+    if (sd_wrapper.is_file_available(BLAST_FILENAME)) {
+      File blast_file = sd_wrapper.get_file(BLAST_FILENAME);
       while (blast_file.available()) {
         ch = blast_file.read();
         if (ch == ',') { // new field
@@ -482,14 +455,14 @@ void loop() {
       
       blast_file.close();
 
-      sd_wrapper.remove_file(m_blast_fname);
+      sd_wrapper.remove_file(BLAST_FILENAME);
 
     }
 
     id = 0;
     ptr = 0;
-    if (sd_wrapper.is_file_available(m_blast_email_fname)) {
-      File blast_file = sd_wrapper.get_file(m_blast_email_fname);
+    if (sd_wrapper.is_file_available(BLAST_EMAIL_FILENAME)) {
+      File blast_file = sd_wrapper.get_file(BLAST_EMAIL_FILENAME);
 
       while (blast_file.available()) {
         ch = blast_file.read();
@@ -529,7 +502,7 @@ void loop() {
 
       blast_file.close();
 
-      sd_wrapper.remove_file(m_blast_email_fname);
+      sd_wrapper.remove_file(BLAST_EMAIL_FILENAME);
 
     }
     
@@ -550,7 +523,7 @@ void loop() {
 
   dt_now = rtc.now();
 
-  char dt_buf[] = datetime_fmt;
+  strncpy(dt_buf, datetime_fmt, 50);
   store(ID::datetime, dt_now.toString(dt_buf)); //check cast!
 
   //update all data values
@@ -591,16 +564,16 @@ void loop() {
       Serial.println("....................................");
     }
 
-    if (WiFi.status() != WL_CONNECTED) {
+    if (wifi_wrapper.get_wifi_status() != WL_CONNECTED) {
       if (blast_mode == 0) {
         Serial.println("WARNING: WiFi connection dropped, switching to blast mode!");
       }
       
-      WiFi.begin(NETWORK_SSID, NETWORK_PASS);
+      wifi_wrapper.connect_unblocking();
 
       char blast_cbuff[50 * ID::LAST];
       format_blast_msg(ID::LAST, data_c, sizeof(blast_cbuff), blast_cbuff);
-      sd_wrapper.append_file(m_blast_fname, blast_cbuff);
+      sd_wrapper.append_file(BLAST_FILENAME, blast_cbuff);
 
       format_csv_msg(NUM_CSV_FIELDS, CSV_FIELDS, CSV_FIELD_IDS, data_c, cbuff_size, cbuff);
       snprintf(csv_path, FILENAME_SIZE, "/%s", data_c[ID::csv_filename]);
@@ -629,12 +602,12 @@ void loop() {
   }
 
   if (strcmp(data_c[ID::prev_hole_num], data_c[ID::hole_num]) != 0) {
-    if (WiFi.status() != WL_CONNECTED) {
-      WiFi.begin(NETWORK_SSID, NETWORK_PASS);
+    if (wifi_wrapper.get_wifi_status() != WL_CONNECTED) {
+      wifi_wrapper.connect_unblocking();
 
       char blast_cbuff[50 * ID::LAST];
       format_blast_msg(ID::LAST, data_c, sizeof(blast_cbuff), blast_cbuff);
-      sd_wrapper.append_file(m_blast_email_fname, blast_cbuff);
+      sd_wrapper.append_file(BLAST_EMAIL_FILENAME, blast_cbuff);
 
       blast_mode = 1;
 

@@ -1,8 +1,6 @@
 #ifndef SYSTEM_CONFIG_H_
 #define SYSTEM_CONFIG_H_
 
-#include <Arduino.h>
-
 // RTC params //
 #define SD_CS                15
 #define GMTOFFSET_SEC        28800 //GMTOFFSET * 60 * 60 //https://en.wikipedia.org/wiki/List_of_UTC_time_offsets REFER TO LINK FOR OFFSET NUMBER
@@ -22,6 +20,10 @@
 #define NETWORK_TIMEOUT 10 // seconds
 
 // MQTT params //
+#define AWS_CERT_CA_FILENAME "/AmazonRootCA1.pem"
+#define AWS_CERT_CRT_FILENAME "/thing-certificate.pem.crt"
+#define AWS_CERT_PRIVATE_FILENAME "/thing-private.pem.key"
+
 #define MQTT_TIMEOUT      1 // seconds
 
 // CAN params //
