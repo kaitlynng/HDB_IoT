@@ -1,6 +1,3 @@
-#include "../config/system_config.h"
-#include "../config/user_config.h"
-
 #include <Arduino.h>
 #include <string>
 #include <time.h>  //time library
@@ -13,12 +10,17 @@
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> //Async HTTP and WebSocket Server for ESP8266 Arduino
 
-// #include <Adafruit_GFX.h>
-// #include <Adafruit_SSD1306.h>
-
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
+
+#include "../config/system_config.h"
+
+#if __has_include("../config/user_config.h")
+#  include "../config/user_config.h"
+#else
+#  include "../config/default_user_config.h"
+#endif
 
 #include "modules/can_wrapper.h"
 #include "modules/gps_wrapper.h"

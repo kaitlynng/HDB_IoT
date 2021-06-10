@@ -1,8 +1,6 @@
 #ifndef SYSTEM_CONFIG_H_
 #define SYSTEM_CONFIG_H_
 
-#include <Arduino.h>
-
 // RTC params //
 #define SD_CS                15
 #define GMTOFFSET_SEC        28800 //GMTOFFSET * 60 * 60 //https://en.wikipedia.org/wiki/List_of_UTC_time_offsets REFER TO LINK FOR OFFSET NUMBER
