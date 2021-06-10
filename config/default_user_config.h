@@ -19,7 +19,7 @@ const int SECONDARY_DNS[] = {0, 0, 0, 0};
 #define MQTT_ENDPOINT    "a132xxzx3351g7-ats.iot.ap-southeast-1.amazonaws.com"
 #define MQTT_PORT        8883
 #define MQTT_CLIENT      LOGGER_ID
-#define MQTT_TOPIC       "$aws/things/" LOGGER_ID "/shadow/update"
+#define MQTT_TOPIC       "$aws/things/" LOGGER_ID "/data"
 
 // SQL credentials
 #define MYSQL_HOSTNAME  "aidrivers-hdb-01.c3yqyazj0wp1.us-east-2.rds.amazonaws.com"
