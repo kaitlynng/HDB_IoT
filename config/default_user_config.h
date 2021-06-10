@@ -16,20 +16,22 @@ const int PRIMARY_DNS[] = {192, 168, 10, 1};
 const int SECONDARY_DNS[] = {0, 0, 0, 0};
 
 // MQTT server
-#define MQTT_SERVER         "3.tcp.ngrok.io"  // "192.168.10.110" // "6.tcp.ngrok.io" // "2.tcp.ngrok.io"
-#define MQTT_SERVER_PORT     21369 // 1883 // 18010  // 11576
-#define MQTT_CLIENT         "ESP32Client"
-#define MQTT_TOPIC          "Crane/1"
+#define MQTT_ENDPOINT    "a132xxzx3351g7-ats.iot.us-east-2.amazonaws.com"
+#define MQTT_PORT        8883
+#define MQTT_CLIENT      LOGGER_ID
+#define MQTT_TOPIC       "$aws/things/" LOGGER_ID "/shadow/update"
 
 // SQL credentials
-#define MYSQL_USER      "leo"
-#define MYSQL_PASS      "lqNZ3K]2U0)br5"
+#define MYSQL_HOSTNAME  "aidrivers-hdb-01.c3yqyazj0wp1.us-east-2.rds.amazonaws.com"
+#define MYSQL_PORT      3306
+
+#define MYSQL_USER      "admin"
+#define MYSQL_PASS      "a1Drivers75"
 #define DEFAULT_DB      "leo_1"
 #define DEFAULT_TABLE   "Test4"
-const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *server* here// to check daily  //216,219,81,80//52,76,27,242
 
+// NTP server
 #define NTP_SERVER      "asia.pool.ntp.org"
-
 
 // email details
 #define EMAIL_SENDER_NAME       "HDB datalogger"

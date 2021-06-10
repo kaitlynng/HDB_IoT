@@ -20,6 +20,10 @@
 #define NETWORK_TIMEOUT 10 // seconds
 
 // MQTT params //
+#define AWS_CERT_CA_FILENAME "/AmazonRootCA1.pem"
+#define AWS_CERT_CRT_FILENAME "/thing-certificate.pem.crt"
+#define AWS_CERT_PRIVATE_FILENAME "/thing-private.pem.key"
+
 #define MQTT_TIMEOUT      1 // seconds
 
 // CAN params //

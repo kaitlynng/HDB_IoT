@@ -28,8 +28,18 @@ public:
         }
     }
 
+    bool is_file_available(const char* path) {
+        return SD.exists(path);
+    }
+
     bool is_file_available(char* path) {
         return SD.exists(path);
+    }
+
+    File get_file(const char* path) {
+        char m_path[50];
+        strncpy(m_path, path, 50);
+        return get_file(m_path);
     }
 
     File get_file(char* path) {
@@ -38,6 +48,12 @@ public:
             Serial.println("WARNING: Unable to open file!");
         }
         return file;
+    }
+
+    bool read_file(const char* path, const int cbuff_size, char* cbuff) {
+        char m_path[50];
+        strncpy(m_path, path, 50);
+        return read_file(m_path, cbuff_size, cbuff);
     }
 
     bool read_file(char* path, const int cbuff_size, char* cbuff) {
@@ -73,6 +89,12 @@ public:
         file.close();
     }
 
+    void remove_file(const char* path) {
+        char m_path[50];
+        strncpy(m_path, path, 50);
+        remove_file(m_path);
+    }
+
     void remove_file(char* path) {
         if (!SD.exists(path)) {
             Serial.println("WARNING: File does not exist!");
@@ -92,6 +114,12 @@ public:
             Serial.println("WARNING: Failed to write to file!");
         }
         file.close();
+    }
+
+    void append_file(const char* path, char* data) {
+        char m_path[50];
+        strncpy(m_path, path, 50);
+        append_file(m_path, data);
     }
 
     void append_file(char* path, char* data) {
