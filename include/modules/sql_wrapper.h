@@ -9,11 +9,11 @@
 class SqlWrapper
 {
 public:
-    SqlWrapper(const int server_addr[], const char* user, const char* pass, WiFiClient &client, bool flag = true) 
-    : m_server_addr(server_addr[0], server_addr[1], server_addr[2], server_addr[3]), 
-      conn(&client), active_flag(flag) {
-          m_user = strdup(user); // convert const char* to char* for SQL API calls
-          m_pass = strdup(pass);
+    SqlWrapper(const char* hostname, const int port, const char* user, const char* pass, WiFiClient &client, bool flag = true) 
+    :  m_port(port), conn(&client), active_flag(flag) {
+          strncpy(m_hostname, hostname, 100);
+          strncpy(m_user, user, 100);
+          strncpy(m_pass, pass, 100);
       } //IPAddress serverAddr(216,219,81,80); 
 
     SqlWrapper() = delete;
@@ -26,7 +26,7 @@ public:
         }
 
         Serial.print("Connecting to SQL...  ");
-        if (conn.connect(m_server_addr, 3306, m_user, m_pass)) {  // 3306 is mySQL protocol port
+        if (conn.connect(m_hostname, m_port, m_user, m_pass)) {
             Serial.println("OK.");
         } else {
             Serial.println("FAILED.");
@@ -41,7 +41,7 @@ public:
             return;
         }
         Serial.print("Connecting to SQL...  ");
-        if (conn.connect(m_server_addr, 3306, m_user, m_pass)) {
+        if (conn.connect(m_hostname, m_port, m_user, m_pass)) {
             Serial.println("OK.");
         } else {
             Serial.println("Failed to connect to server. Aborting...");
@@ -65,9 +65,10 @@ public:
     }
 
 private:
-    char* m_user;
-    char* m_pass;
-    IPAddress m_server_addr;
+    char m_hostname[100];
+    int m_port;
+    char m_user[100];
+    char m_pass[100];
 
     WiFiClient client;
     MySQL_Connection conn;
