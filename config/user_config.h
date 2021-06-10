@@ -1,11 +1,11 @@
 #ifndef USER_CONFIG_H_
 #define USER_CONFIG_H_
 
-#define LOGGER_ID       "CR020005"
+#define LOGGER_ID       "CR020006"
 #define CONTRACT_NAME   "TENGAHPAC07/D/027"
 
 // network credentials
-#define NETWORK_SSID    "HDB5"
+#define NETWORK_SSID    "HDB6"
 #define NETWORK_PASS    "hdbdatalogger"
 
 const int LOCAL_IP_ADDRESS[] = {192, 168, 0, 184}; 
