@@ -26,6 +26,11 @@
 #define AWS_CERT_CRT_FILENAME "/thing-certificate.pem.crt"
 #define AWS_CERT_PRIVATE_FILENAME "/thing-private.pem.key"
 
+//Certificate in SIM7600
+#define ROOTCA_CERT_FILENAME "\"AmazonRootCA1.pem\""
+#define CLIENT_CERT_FILENAME "\"thing-certificate.pem\""
+#define CLIENT_KEY_FILENAME  "\"thing-private.pem\""
+
 #define MQTT_TIMEOUT      1 // seconds
 
 // CAN params //

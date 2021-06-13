@@ -15,6 +15,8 @@
 // #include <Adafruit_GFX.h>
 // #include <Adafruit_SSD1306.h>
 
+#include <TinyGsmClient.h>
+
 #include <ESPmDNS.h>
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
@@ -36,6 +38,9 @@ WiFiClient client; // should move WiFiSecureClient out from mqtt wrapper too
 RTC_DS3231 rtc;
 
 AsyncWebServer server(80);
+
+//SIM7600 module Initialization
+TinyGsm modem(SerialAT);
 
 // Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -64,6 +69,8 @@ SqlWrapper sql_wrapper(MYSQL_SERVER_ADDRESS, MYSQL_USER, MYSQL_PASS, client, SQL
 MqttWrapper mqtt_wrapper(MQTT_ENDPOINT, MQTT_PORT, MQTT_CLIENT, MQTT_TIMEOUT, MQTT_FLAG);
 EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT, EMAIL_FLAG);
 
+
+
 // variables
 String can_data[3]; // {can_id, msb, lsb}
 double gps_data[2]; // {lat, longi}
@@ -71,6 +78,14 @@ char dt_buf[50];
 
 const int cbuff_size = 800;
 char cbuff[cbuff_size] = "";
+
+// Certificate file size length, [0]: rootCA, [1]: clientCert, [2]: clientKey 
+int cert_file_length[3];
+
+// Initialize char array for AT commands
+char rootCA_upload_command [50];
+char clientCert_upload_command[50];
+char clientKey_upload_command[50];
 
 char data_c[ID::LAST][50];
 uint32_t data_i[ID::LAST];
@@ -242,6 +257,8 @@ void sync_rtc_time() {
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
+  // This serial is for SIM7600 module
+  SerialAT.begin(115200, SERIAL_8N1, GPS_RXPIN, GPS_TXPIN);
 
   //Print the wakeup reason for ESP32
   print_wakeup_reason();
@@ -271,6 +288,10 @@ void setup() {
   char ip_cbuff[20];
   wifi_wrapper.get_local_ip(ip_cbuff);
   store(ID::ip_address, ip_cbuff); // probably need error handling
+
+  modem.init(); // Initialized GPRS module for connection
+  Serial.println("OK.");
+  Serial.println(F("Initializing modem SIM7600..."));
 
   // setup Arduino OTA
   ArduinoOTA
@@ -322,6 +343,10 @@ void setup() {
   sd_wrapper.read_file(AWS_CERT_CA_FILENAME, 2000, aws_cert_ca);
   sd_wrapper.read_file(AWS_CERT_CRT_FILENAME, 2000, aws_cert_crt);
   sd_wrapper.read_file(AWS_CERT_PRIVATE_FILENAME, 2000, aws_cert_private);
+  cert_file_length[0] = (int) strlen(aws_cert_ca); 
+  cert_file_length[1] = (int) strlen(aws_cert_crt); 
+  cert_file_length[2] = (int) strlen(aws_cert_private); 
+
   mqtt_wrapper.set_certificates(aws_cert_ca, aws_cert_crt, aws_cert_private);
   mqtt_wrapper.setup();
 
@@ -655,4 +680,125 @@ void loop() {
   reset_flags();
   is_sensor_online = 0;
   is_gps_online = 0;
+}
+
+
+// Functions for AT commands, please move to another file for the code to look nicer
+void uploadCertificate(){
+  sprintf(rootCA_upload_command, "AT+CCERTDOWN=%s,%d\r\n", ROOTCA_CERT_FILENAME, cert_file_length[0]);
+  SerialAT.write(rootCA_upload_command);
+
+  if (modem.waitResponse(GF(">")) == 1) {
+    SerialAT.write(aws_cert_ca); SerialAT.write("\r\n");
+  }
+  if (modem.waitResponse() == 1){
+    Serial.println("Writing root CA key into SIM7600");
+  }
+  else{
+    Serial.println("Failed to write to root CA file");
+  }
+
+  sprintf(clientCert_upload_command, "AT+CCERTDOWN=%s,%d\r\n", CLIENT_CERT_FILENAME, cert_file_length[1]);
+  SerialAT.write(clientCert_upload_command );
+  if (modem.waitResponse(GF(">")) == 1) {
+    SerialAT.write(aws_cert_crt); SerialAT.write("\r\n");
+  }
+  if (modem.waitResponse() == 1){
+    Serial.println("Writing client Cert into SIM7600");
+  }
+  else{
+    Serial.println("Failed to write to client Cert file");
+  }
+
+  sprintf(clientKey_upload_command, "AT+CCERTDOWN=%s,%d\r\n", CLIENT_KEY_FILENAME, cert_file_length[2]);
+  SerialAT.write(clientKey_upload_command);
+  if (modem.waitResponse(GF(">")) == 1) {
+    SerialAT.write(aws_cert_private); SerialAT.write("\r\n");
+  }
+  if (modem.waitResponse() == 1){
+    Serial.println("Writing client Key into SIM7600");
+  }
+  else{
+    Serial.println("Failed to write to client Key file");
+  }
+}
+
+void listExistingCertificateGSM(){
+  SerialAT.write("AT+CCERTLIST\r\n");
+}
+
+void setupCertificate(){
+  // SET up TLS conncetion TLS 1.2 that needs authentication from both side
+  SerialAT.write("AT+CSSLCFG=\"sslversion\",0,3\r\n");
+  if (modem.waitResponse() != 1) {
+    Serial.println("Failed to setup SSL version");
+  } else {
+    Serial.println("Setup SSL version successfully");
+  }
+
+  // SET up TLS conncetion TLS 1.2 that needs authentication from both side
+  SerialAT.write("AT+CSSLCFG=\"authmode\",0,2\r\n");
+  if (modem.waitResponse() != 1) {
+    Serial.println("Failed to setup authentication method");
+  }
+  else{
+    Serial.println("Set GSM module to use both authentication from server and client");
+  }
+
+  SerialAT.write("AT+CSSLCFG=\"cacert\",0," ROOTCA_CERT_FILENAME "\r\n");
+  if (modem.waitResponse() != 1) {
+    Serial.println("Failed to setup rootCA Authentication");
+  }
+  else{
+    Serial.println("Setup rootCA file successfully");
+  }
+
+  SerialAT.write("AT+CSSLCFG=\"clientcert\",0," CLIENT_CERT_FILENAME "\r\n");
+  if (modem.waitResponse() != 1) {
+    Serial.println("Failed to setup clientCert Authentication");
+  }
+  else{
+    Serial.println("Setup Client Cert successfully");
+  }
+
+  SerialAT.write("AT+CSSLCFG=\"clientkey\",0,"  CLIENT_KEY_FILENAME "\r\n");
+  if (modem.waitResponse() != 1) {
+    Serial.println("Failed to setup clientKey Authentication");
+  }
+  else{
+    Serial.println("Setup Client Key successfully");
+  }
+}
+
+void setupCertificateBuffer(){
+  sd_wrapper.read_file(AWS_CERT_CA_FILENAME,2000, aws_cert_ca);
+  sd_wrapper.read_file(AWS_CERT_CRT_FILENAME,2000, aws_cert_crt);
+  sd_wrapper.read_file(AWS_CERT_PRIVATE_FILENAME,2000, aws_cert_private);
+  cert_file_length[0] = (int) strlen(aws_cert_ca);  Serial.println(cert_file_length[0]);
+  cert_file_length[1] = (int) strlen(aws_cert_crt); Serial.println(cert_file_length[1]);
+  cert_file_length[2] = (int) strlen(aws_cert_private); Serial.println(cert_file_length[2]);
+}
+
+void deleteCertificate(){
+  SerialAT.write("AT+CCERTDELE=" ROOTCA_CERT_FILENAME "\r\n");
+  if (modem.waitResponse() != 1) {
+    Serial.println("Failed to delete rootCA Certificate");
+  }
+  else{
+    Serial.println("Successfully deleted rootCA Certificate");
+  }
+  SerialAT.write("AT+CCERTDELE=" CLIENT_CERT_FILENAME "\r\n");
+  if (modem.waitResponse() != 1) {
+    Serial.println("Failed to delete Client Certificate");
+  }
+  else{
+    Serial.println("Successfully deleted Client Certificate");
+  }
+  SerialAT.write("AT+CCERTDELE=" CLIENT_KEY_FILENAME "\r\n");
+  if (modem.waitResponse() != 1) {
+    Serial.println("Failed to delete client Key");
+  }
+  else{
+    Serial.println("Successfully deleted client Key");
+  }
 }

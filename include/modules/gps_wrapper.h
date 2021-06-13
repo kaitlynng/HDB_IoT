@@ -13,7 +13,7 @@ public:
     GpsWrapper() = delete;
     ~GpsWrapper() {};
 
-    void setup() { Serial2.begin(m_baud, SERIAL_8N1, m_rx_pin, m_tx_pin); }
+    void setup() {} // Do nothing as Serial2 is initialized outside
 
     bool poll(double data[2]) {
         if (Serial2.available() > 0) {

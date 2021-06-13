@@ -17,6 +17,10 @@ const int SUBNET_ADDRESS[] = {255, 255, 255, 0};
 const int PRIMARY_DNS[] = {192, 168, 1, 254};
 const int SECONDARY_DNS[] = {0, 0, 0, 0};
 
+// SIM7600 module
+#define TINY_GSM_MODEM_SIM7600
+#define SerialAT Serial2
+
 // MQTT server
 #define MQTT_ENDPOINT    "a132xxzx3351g7-ats.iot.us-east-2.amazonaws.com"
 #define MQTT_PORT        8883
