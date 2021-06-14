@@ -165,7 +165,6 @@ String processor(const String &var) { // TODO
   
   } else if (var == "LoggerID") {
     return data_c[ID::logger_id];
-  }
 
   } else {
       return "";

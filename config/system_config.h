@@ -169,7 +169,7 @@ const int HTTP_FIELD_IDS[] = {
 // json fields //
 #define NUM_JSON_FIELDS     16
 const char* JSON_FIELDS[] = {
-    "LoggerID", "SenderID", "SensorID", "ResourcePath", "ResourcePath", 
+    "LoggerID", "SenderID", "SensorID", "ResourcePath", "", 
     "Holediameter", "HoleNumber", "EventID", 
     "sensorstatus", "Time", "severity", 
     "Depth", "Torque", "InclinationX", "InclinationY", "Description"

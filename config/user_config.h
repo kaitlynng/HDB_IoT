@@ -50,6 +50,6 @@ const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "TengahPAC7_PileData
 #define MQTT_FLAG       true
 #define EMAIL_FLAG      true
 
-#define DEBUG_FLAG      false
+#define DEBUG_FLAG      true
 
 #endif //USER_CONFIG_H_
