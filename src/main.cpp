@@ -265,6 +265,9 @@ void setup() {
     data_updated[i] = false;
   }
 
+  // set Logger ID
+  strncpy(data_c[ID::logger_id], LOGGER_ID, 50);
+
   wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
   wifi_wrapper.setup();
   
