@@ -76,13 +76,13 @@ int format_email_msg(const int num_fields, const char* fields[], const int tgt_i
                       const int cbuff_size, char* cbuff) {
     
     int cx = 0;
-    for (int i = 0; i < 8; i++) {
+    for (int i = 0; i < 9; i++) {
         cx += snprintf(cbuff + cx, cbuff_size - cx, "%s: %s<br/>", fields[i], data[tgt_ids[i]]);
     }
 
-    cx += snprintf(cbuff + cx, cbuff_size - cx, "%s: %s, %s<br/<", fields[8], data[tgt_ids[8]], data[tgt_ids[9]]); // lat and lon special format
+    cx += snprintf(cbuff + cx, cbuff_size - cx, "%s: %s, %s<br/<", fields[9], data[tgt_ids[9]], data[tgt_ids[10]]); // lat and lon special format
     
-    for (int i = 10; i < num_fields; i++) {
+    for (int i = 11; i < num_fields; i++) {
         cx += snprintf(cbuff + cx, cbuff_size - cx, "%s: %s<br/>", fields[i], data[tgt_ids[i]]);
     }
 
@@ -94,17 +94,22 @@ void format_json_msg(int num_fields, const char* fields[], const int tgt_ids[], 
     StaticJsonDocument<800> doc;
     String msg;
 
+    for (int i = 0; i < 3; i++) {
+        doc[fields[i]] = data[tgt_ids[i]];
+    }
+
     doc[fields[0]] = data[tgt_ids[0]];
     doc[fields[1]] = data[tgt_ids[1]];
-    doc[fields[2]][0] = data[tgt_ids[2]];
-    doc[fields[2]][1] = data[tgt_ids[3]]; //lat and longi is special
+    
+    doc[fields[3]][0] = data[tgt_ids[3]];
+    doc[fields[3]][1] = data[tgt_ids[4]]; //lat and longi is special
 
-    for (int i = 4; i < 7; i++) {
+    for (int i = 5; i < 8; i++) {
         doc[fields[i]] = data[tgt_ids[i]];
     }
 
     JsonObject parameters = doc.createNestedObject("Parameters");
-    for (int i = 7; i < num_fields; i++) {
+    for (int i = 8; i < num_fields; i++) {
         parameters[fields[i]] = data[tgt_ids[i]];
     }
 

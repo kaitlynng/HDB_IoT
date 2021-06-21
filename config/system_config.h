@@ -46,7 +46,7 @@
 #define OLED_RESET      -1
 
 enum ID {
-    sender_id, sensor_id, event_title, event_id, event_type,
+    logger_id, sender_id, sensor_id, event_title, event_id, event_type,
     block_num, contract_num, ip_address, 
     severity, description, target_depth, 
     lat, longi, hole_dia, hole_num,
@@ -58,7 +58,7 @@ enum ID {
 };
 
 const char* ID_NAMES[] = {
-    "sender_id", "sensor_id", "event_title", "event_id", "event_type",
+    "logger_id", "sender_id", "sensor_id", "event_title", "event_id", "event_type",
     "block_num", "contract_num", "ip_address", 
     "severity", "description", "target_depth",
     "lat", "longi", "hole_dia", "hole_num",
@@ -69,7 +69,7 @@ const char* ID_NAMES[] = {
 };
 
 const char* DEFAULT_VALUES[] = {
-    "Crane1", "Crane1", "TengahDrill", "EV-183159-DRILL-01-DIGITALPILE-SANY-JURONG", "digitalpiling/System#Reading",
+    "test", "Crane1", "Crane1", "TengahDrill", "EV-183159-DRILL-01-DIGITALPILE-SANY-JURONG", "digitalpiling/System#Reading",
     "BLK306A", "21", "0.0.0.0",
     "6", "sensor readings", "0.0",
     "0.0", "0.0", "0.0", "G1-2",
@@ -100,9 +100,9 @@ const int STORAGE_FILENAME_IDS[] = {
 #define HTML_FILENAME       "/index.htm"
 
 // SQL fields //
-#define NUM_SQL_FIELDS      17
+#define NUM_SQL_FIELDS      18
 const char* SQL_FIELDS[] = {
-    "SenderID", "SensorID",
+    "LoggerID", "SenderID", "SensorID",
     "Lat", "Longi",
     "HoleDiameter", "HoleNumber",
     "EventID", "Sensorstatus", "Time", "Severity",
@@ -111,7 +111,7 @@ const char* SQL_FIELDS[] = {
 };
 
 const int SQL_FIELD_IDS[] = {
-    ID::sender_id, ID::sensor_id,
+    ID::logger_id, ID::sender_id, ID::sensor_id,
     ID::lat, ID::longi,
     ID::hole_dia, ID::hole_num,
     ID::event_title, ID::sensor_status,
@@ -138,17 +138,17 @@ const int CSV_FIELD_IDS[] = {
 };
 
 // email fields //
-#define NUM_EMAIL_FIELDS    14
+#define NUM_EMAIL_FIELDS    15
 
 const char* EMAIL_FIELDS[] = {
-    "EventID", "Event type", "Description", "Severity", 
+    "LoggerID", "EventID", "Event type", "Description", "Severity", 
     "\nSenderID", "SensorID", "Starting time", 
     "\nPile ID", "Resource path", "", "Calculated Depth from Top of Casing (m)",
     "\nTime", "Sensor status", "Measured (Max) Depth from Top of Casing (m)"
 };
 
 const int EMAIL_FIELD_IDS[] = {
-    ID::event_id, ID::event_type, ID::description, ID::severity,
+    ID::logger_id, ID::event_id, ID::event_type, ID::description, ID::severity,
     ID::sender_id, ID::sensor_id, ID::prev_dt,
     ID::prev_hole_num, ID::lat, ID::longi, ID::target_depth,
     ID::datetime, ID::sensor_status, ID::max_depth
@@ -167,16 +167,16 @@ const int HTTP_FIELD_IDS[] = {
 }; // HTML web page to handle 2 input fields (input1, input2)
 
 // json fields //
-#define NUM_JSON_FIELDS     15
+#define NUM_JSON_FIELDS     16
 const char* JSON_FIELDS[] = {
-    "SenderID", "SensorID", "ResourcePath", "ResourcePath", 
+    "LoggerID", "SenderID", "SensorID", "ResourcePath", "", 
     "Holediameter", "HoleNumber", "EventID", 
     "sensorstatus", "Time", "severity", 
     "Depth", "Torque", "InclinationX", "InclinationY", "Description"
 };
 
 const int JSON_FIELD_IDS[] = {
-    ID::sender_id, ID::sensor_id, ID::lat, ID::longi, 
+    ID::logger_id, ID::sender_id, ID::sensor_id, ID::lat, ID::longi, 
     ID::hole_dia, ID::hole_num, ID::event_type, 
     ID::sensor_status, ID::datetime, ID::severity, 
     ID::depth, ID::torque, ID::incl_x, ID::incl_y, ID::description

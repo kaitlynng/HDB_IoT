@@ -162,6 +162,9 @@ String processor(const String &var) { // TODO
 
   } else if (var == "ContractNo") {
       return data_c[ID::contract_num];
+  
+  } else if (var == "LoggerID") {
+    return data_c[ID::logger_id];
 
   } else {
       return "";
@@ -264,6 +267,9 @@ void setup() {
     free(default_value);
     data_updated[i] = false;
   }
+
+  // set Logger ID
+  strncpy(data_c[ID::logger_id], LOGGER_ID, 50);
 
   wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
   wifi_wrapper.setup();
