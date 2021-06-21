@@ -292,6 +292,9 @@ void setup() {
   modem.init(); // Initialized GPRS module for connection
   Serial.println("OK.");
   Serial.println(F("Initializing modem SIM7600..."));
+  deleteCertificate();
+  uploadCertificate();
+  setupCertificate();
 
   // setup Arduino OTA
   ArduinoOTA
