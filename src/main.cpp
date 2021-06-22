@@ -34,13 +34,14 @@
 #include "utils/fmt_util.h"
 
 
-WiFiClient client; // should move WiFiSecureClient out from mqtt wrapper too
+// WiFiClient client; // should move WiFiSecureClient out from mqtt wrapper too
 RTC_DS3231 rtc;
 
 AsyncWebServer server(80);
 
 //SIM7600 module Initialization
 TinyGsm modem(SerialAT);
+TinyGsmClient client(modem);
 
 // Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
@@ -59,14 +60,15 @@ char aws_cert_crt[2000];
 char aws_cert_private[2000];
 
 // objects
-WiFiWrapper wifi_wrapper(NETWORK_SSID, NETWORK_PASS, NETWORK_TIMEOUT);
+// WiFiWrapper wifi_wrapper(NETWORK_SSID, NETWORK_PASS, NETWORK_TIMEOUT);
 
 CanWrapper can_wrapper(CAN_RXPIN, CAN_TXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
 GpsWrapper gps_wrapper(GPS_RXPIN, GPS_TXPIN, GPS_BAUDRATE);
 SdWrapper sd_wrapper(SD_CS);
 
 SqlWrapper sql_wrapper(MYSQL_SERVER_ADDRESS, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
-MqttWrapper mqtt_wrapper(MQTT_ENDPOINT, MQTT_PORT, MQTT_CLIENT, MQTT_TIMEOUT, MQTT_FLAG);
+// ---------------------- Stop MQTT function temporarily ------------------------------------
+// MqttWrapper mqtt_wrapper(MQTT_ENDPOINT, MQTT_PORT, MQTT_CLIENT, MQTT_TIMEOUT, MQTT_FLAG);
 EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT, EMAIL_FLAG);
 
 
@@ -82,7 +84,7 @@ char cbuff[cbuff_size] = "";
 // Certificate file size length, [0]: rootCA, [1]: clientCert, [2]: clientKey 
 int cert_file_length[3];
 
-// Initialize char array for AT commands
+// Initialize char array for AT commands for uploading certificate
 char rootCA_upload_command [50];
 char clientCert_upload_command[50];
 char clientKey_upload_command[50];
@@ -237,10 +239,19 @@ bool connect_rtc() {
 void sync_rtc_time() {
   Serial.print("Adjusting time...");
 
-  if (wifi_wrapper.get_wifi_status() != 3) {
-    Serial.println("No WiFi connection! Unable to adjust time.");
+
+// --------------- Replace this with gsm module ------------------------------
+  // if (wifi_wrapper.get_wifi_status() != 3) {
+  //   Serial.println("No WiFi connection! Unable to adjust time.");
+  //   return;
+  // }
+  //---------------------------------------------------------------
+  
+  if (!modem.isGprsConnected()) {
+    Serial.println("No connection to the internet! Unable to adjust time.");
     return;
   }
+
 
   configTime(GMTOFFSET_SEC, DAYLIGHTOFFSET_SEC, NTP_SERVER);
   
@@ -253,6 +264,30 @@ void sync_rtc_time() {
   rtc.adjust(tm2DateTime(t));
   Serial.println("Successfully synced RTC to NTP!");
 }
+
+// Function using SIM7600 to connect to the internet
+void GPRS_connect(uint32_t timeout){
+  uint32_t startTime = millis();
+  Serial.print(F("Connecting to "));
+  Serial.println(apn);
+  
+  while (millis() - startTime < timeout * 1000) {
+    if (modem.gprsConnect(apn, gprsUser, gprsPass)) { 
+      Serial.println("GPRS connected"); 
+      break; 
+    }
+    delay(100);
+    Serial.print(".");
+  }
+
+  if (modem.isGprsConnected()){
+    Serial.println("GPRS connected! Continue with ops");
+  }
+  else{
+    Serial.println("Failed to connect to GPRS........ Please try again");
+  }
+}
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -281,20 +316,41 @@ void setup() {
     data_updated[i] = false;
   }
 
-  wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
-  wifi_wrapper.setup();
+//-------------------------- CHANGE THIS TO GSM MODULE --------------------------------------
+  // wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
+  // wifi_wrapper.setup();
+
+  modem.restart(); // Initialized GPRS module for connection
+  String modemInfo = modem.getModemInfo();
+  Serial.print("Modem Info: ");
+  Serial.println(modemInfo);
+  GPRS_connect(NETWORK_TIMEOUT);
+  // ------------------------------------------------------------------------------
   
 
   char ip_cbuff[20];
-  wifi_wrapper.get_local_ip(ip_cbuff);
+
+  // ----------------------------------- GET IPADDR FROM GSM MODULE -------------------------------------------
+  // wifi_wrapper.get_local_ip(ip_cbuff);
+
+  // Get IP address from the module
+
+  // ------------------------------------ Get this into a function if the program works ------------------------------------------
+  IPAddress ip = modem.localIP() ;
+  sprintf(ip_cbuff, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+
+  Serial.print("Connecting with IP Address: "); Serial.println(ip_cbuff);
+
   store(ID::ip_address, ip_cbuff); // probably need error handling
 
-  modem.init(); // Initialized GPRS module for connection
-  Serial.println("OK.");
-  Serial.println(F("Initializing modem SIM7600..."));
-  deleteCertificate();
-  uploadCertificate();
-  setupCertificate();
+
+
+  
+
+// --------------------------------- CURRENTLY UNUSED UNTIL CAN FIX MQTT PROBLEM ---------------------------------
+  // deleteCertificate();
+  // uploadCertificate();
+  // setupCertificate();
 
   // setup Arduino OTA
   ArduinoOTA
@@ -338,7 +394,8 @@ void setup() {
   //setup modules
   can_wrapper.setup();
   sql_wrapper.setup();
-  gps_wrapper.setup();
+ // ------------------------------------------------------ Pause GPS and change to GPS soon ----------------------------
+  // gps_wrapper.setup();
   sd_wrapper.setup();
   email_wrapper.setup(); //doesn't do anything, for standardisation
 
@@ -350,8 +407,10 @@ void setup() {
   cert_file_length[1] = (int) strlen(aws_cert_crt); 
   cert_file_length[2] = (int) strlen(aws_cert_private); 
 
-  mqtt_wrapper.set_certificates(aws_cert_ca, aws_cert_crt, aws_cert_private);
-  mqtt_wrapper.setup();
+// ----------------------------------------- PAUSE MQTT OPERATION -------------------------------------------------------
+  // mqtt_wrapper.set_certificates(aws_cert_ca, aws_cert_crt, aws_cert_private);
+  // mqtt_wrapper.setup();
+// ----------------------------------------------------------------------------------------------------------------------
 
   for (int i = 0; i < NUM_STORAGE_FILENAMES; i++) {
     if (i < ID::LAST) strncpy(filenames_arr[STORAGE_FILENAME_IDS[i]], STORAGE_FILENAMES[i], FILENAME_SIZE);
@@ -445,7 +504,8 @@ void setup() {
 void loop() {
   ArduinoOTA.handle();
 
-  if ((wifi_wrapper.get_wifi_status() == WL_CONNECTED) && blast_mode) {
+  // --------------------------------------- Redo this one with GSM --------------------------------------
+  if (modem.isGprsConnected() && blast_mode) {
     // do a blast
     Serial.println("WiFi connection restored! Blasting messages...");
 
@@ -468,9 +528,10 @@ void loop() {
           if (DEBUG_FLAG) {Serial.println(cbuff); }
           sql_wrapper.insert(cbuff);
 
-          format_json_msg(NUM_JSON_FIELDS, JSON_FIELDS, JSON_FIELD_IDS, blast_data_c, cbuff_size, cbuff);
-          if (DEBUG_FLAG) {Serial.println(cbuff); }
-          mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
+          // --------------------------- STOP MQTT ACTION FOR NOW --------------------------------------------------
+          // format_json_msg(NUM_JSON_FIELDS, JSON_FIELDS, JSON_FIELD_IDS, blast_data_c, cbuff_size, cbuff);
+          // if (DEBUG_FLAG) {Serial.println(cbuff); }
+          // mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
 
           ptr = 0;
           id = 0;
@@ -567,11 +628,12 @@ void loop() {
     store(ID::sensor_status, status_offline);
   }
 
-  if (gps_wrapper.poll(gps_data)) {
-    is_gps_online = 1;
-    store(ID::lat, (float)gps_data[0]);
-    store(ID::longi, (float)gps_data[1]);
-  }
+// --------------------------------------- USE GPS FROM SIM7600, TO BE IMPLEMENTED --------------------------------------------
+  // if (gps_wrapper.poll(gps_data)) {
+  //   is_gps_online = 1;
+  //   store(ID::lat, (float)gps_data[0]);
+  //   store(ID::longi, (float)gps_data[1]);
+  // }
 
   if (is_gps_online) {
     last_gps_update = dt_now;
@@ -591,12 +653,16 @@ void loop() {
       Serial.println("....................................");
     }
 
-    if (wifi_wrapper.get_wifi_status() != WL_CONNECTED) {
+
+// ---------------------------------- FIX CONDITION FOR BLAST MODE --------------------------------------------------------
+    if (!modem.isGprsConnected()) {
       if (blast_mode == 0) {
         Serial.println("WARNING: WiFi connection dropped, switching to blast mode!");
       }
       
-      wifi_wrapper.connect_unblocking();
+      if (!modem.gprsConnect(apn, gprsUser, gprsPass)){ // Restart modem
+        Serial.println("Failed to connect to the Internet ---- Saving data into SD card");
+      }                                             
 
       char blast_cbuff[50 * ID::LAST];
       format_blast_msg(ID::LAST, data_c, sizeof(blast_cbuff), blast_cbuff);
@@ -620,17 +686,22 @@ void loop() {
       snprintf(csv_path, FILENAME_SIZE, "/%s", data_c[ID::csv_filename]);
       sd_wrapper.append_file(csv_path, cbuff);
       
-      format_json_msg(NUM_JSON_FIELDS, JSON_FIELDS, JSON_FIELD_IDS, data_c, cbuff_size, cbuff);
-      if (DEBUG_FLAG) {Serial.println(cbuff); }
-      mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
+      // --------------------------------------------- PAUSE MQTT ACTION -------------------------------------------------
+      // format_json_msg(NUM_JSON_FIELDS, JSON_FIELDS, JSON_FIELD_IDS, data_c, cbuff_size, cbuff);
+      // if (DEBUG_FLAG) {Serial.println(cbuff); }
+      // mqtt_wrapper.publish(MQTT_TOPIC, cbuff);
     }
 
     dt_next = dt_now + update_interval; 
   }
 
   if (strcmp(data_c[ID::prev_hole_num], data_c[ID::hole_num]) != 0) {
-    if (wifi_wrapper.get_wifi_status() != WL_CONNECTED) {
-      wifi_wrapper.connect_unblocking();
+    if (!modem.isGprsConnected()) {  
+      // wifi_wrapper.connect_unblocking();
+      
+      if (!modem.gprsConnect(apn, gprsUser, gprsPass)){ // Attempt to connect to the internet again
+        Serial.println("Failed to connect to the Internet ---- Saving data into SD card");
+      }   
 
       char blast_cbuff[50 * ID::LAST];
       format_blast_msg(ID::LAST, data_c, sizeof(blast_cbuff), blast_cbuff);
@@ -805,3 +876,5 @@ void deleteCertificate(){
     Serial.println("Successfully deleted client Key");
   }
 }
+
+

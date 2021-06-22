@@ -5,11 +5,12 @@
 #include <WiFi.h>
 #include <MySQL_Connection.h>
 #include <MySQL_Cursor.h>
+#include <TinyGsmClient.h>
 
 class SqlWrapper
 {
 public:
-    SqlWrapper(const int server_addr[], const char* user, const char* pass, WiFiClient &client, bool flag = true) 
+    SqlWrapper(const int server_addr[], const char* user, const char* pass, TinyGsmClient &client, bool flag = true) 
     : m_server_addr(server_addr[0], server_addr[1], server_addr[2], server_addr[3]), 
       conn(&client), active_flag(flag) {
           m_user = strdup(user); // convert const char* to char* for SQL API calls
@@ -69,7 +70,6 @@ private:
     char* m_pass;
     IPAddress m_server_addr;
 
-    WiFiClient client;
     MySQL_Connection conn;
 
     bool active_flag;

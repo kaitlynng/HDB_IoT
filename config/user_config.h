@@ -10,6 +10,11 @@
 #define NETWORK_SSID    "Ng-fam-weefee-extraordinaire" // "AIDrivers SG - 2.4G" // "AndroidAPf2b2" // "HDB4" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
 #define NETWORK_PASS    "tecknam67941827" // "@1Drivers75" // "rfkv0877" // "hdbdatalogger" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
 
+// GPRS credential
+const char apn[]      = "e-ideas";
+const char gprsUser[] = "";
+const char gprsPass[] = "";
+
 const int LOCAL_IP_ADDRESS[] = {192, 168, 1, 184}; 
 const int GATEWAY_ADDRESS[] = {192, 168, 1, 254}; // need to configure!
 const int SUBNET_ADDRESS[] = {255, 255, 255, 0};
@@ -22,7 +27,7 @@ const int SECONDARY_DNS[] = {0, 0, 0, 0};
 #define SerialAT Serial2
 
 // MQTT server
-#define MQTT_ENDPOINT    "a132xxzx3351g7-ats.iot.us-east-2.amazonaws.com"
+#define MQTT_ENDPOINT    "a132xxzx3351g7-ats.iot.ap-southeast-1.amazonaws.com"
 #define MQTT_PORT        8883
 #define MQTT_CLIENT      DEVICE_NAME
 #define MQTT_TOPIC       "$aws/things/" DEVICE_NAME "/shadow/update"
