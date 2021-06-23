@@ -10,19 +10,11 @@
 class SqlWrapper
 {
 public:
-<<<<<<< HEAD
-    SqlWrapper(const int server_addr[], const char* user, const char* pass, TinyGsmClient &client, bool flag = true) 
-    : m_server_addr(server_addr[0], server_addr[1], server_addr[2], server_addr[3]), 
-      conn(&client), active_flag(flag) {
-          m_user = strdup(user); // convert const char* to char* for SQL API calls
-          m_pass = strdup(pass);
-=======
     SqlWrapper(const char* hostname, const int port, const char* user, const char* pass, WiFiClient &client, bool flag = true) 
     :  m_port(port), conn(&client), active_flag(flag) {
           strncpy(m_hostname, hostname, 100);
           strncpy(m_user, user, 100);
           strncpy(m_pass, pass, 100);
->>>>>>> main
       } //IPAddress serverAddr(216,219,81,80); 
 
     SqlWrapper() = delete;
