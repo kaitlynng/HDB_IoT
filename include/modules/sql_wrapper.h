@@ -10,7 +10,7 @@
 class SqlWrapper
 {
 public:
-    SqlWrapper(const char* hostname, const int port, const char* user, const char* pass, WiFiClient &client, bool flag = true) 
+    SqlWrapper(const char* hostname, const int port, const char* user, const char* pass, TinyGsmClient &client, bool flag = true) 
     :  m_port(port), conn(&client), active_flag(flag) {
           strncpy(m_hostname, hostname, 100);
           strncpy(m_user, user, 100);

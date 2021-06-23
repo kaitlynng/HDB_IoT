@@ -4,6 +4,14 @@
 #include <Wire.h> //communicate with i2c devices
 #include <WiFiClientSecure.h>
 
+#include "../config/system_config.h"
+
+#if __has_include("../config/user_config.h")
+#  include "../config/user_config.h"
+#else
+#  include "../config/default_user_config.h"
+#endif
+
 #include <RTClib.h>            //a fork of Jeelab's RTC library for Arduino
 
 #include <AsyncTCP.h>
@@ -18,13 +26,6 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#include "../config/system_config.h"
-
-#if __has_include("../config/user_config.h")
-#  include "../config/user_config.h"
-#else
-#  include "../config/default_user_config.h"
-#endif
 
 #include "modules/wifi_wrapper.h"
 #include "modules/can_wrapper.h"

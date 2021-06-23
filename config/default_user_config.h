@@ -16,8 +16,6 @@ const char gprsPass[] = "";
 
 const int LOCAL_IP_ADDRESS[] = {192, 168, 1, 184}; 
 const int GATEWAY_ADDRESS[] = {192, 168, 1, 254}; // need to configure!
-const int LOCAL_IP_ADDRESS[] = {192, 168, 10, 184}; 
-const int GATEWAY_ADDRESS[] = {192, 168, 10, 1}; // need to configure!
 const int SUBNET_ADDRESS[] = {255, 255, 255, 0};
 
 const int PRIMARY_DNS[] = {192, 168, 10, 1};
