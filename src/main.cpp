@@ -272,14 +272,14 @@ void GPRS_connect(uint32_t timeout){
   Serial.println(apn);
   
   while (millis() - startTime < timeout * 1000) {
+    Serial.println("I am stupid");
     if (modem.gprsConnect(apn, gprsUser, gprsPass)) { 
-      Serial.println("GPRS connected"); 
+      Serial.println("GPRS connected");
       break; 
     }
     delay(100);
     Serial.print(".");
   }
-
   if (modem.isGprsConnected()){
     Serial.println("GPRS connected! Continue with ops");
   }
@@ -320,7 +320,7 @@ void setup() {
   // wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
   // wifi_wrapper.setup();
 
-  modem.restart(); // Initialized GPRS module for connection
+  modem.init(); // Initialized GPRS module for connection
   String modemInfo = modem.getModemInfo();
   Serial.print("Modem Info: ");
   Serial.println(modemInfo);
@@ -353,33 +353,33 @@ void setup() {
   // setupCertificate();
 
   // setup Arduino OTA
-  ArduinoOTA
-    .onStart([]() {
-      String type;
-      if (ArduinoOTA.getCommand() == U_FLASH)
-        type = "sketch";
-      else // U_SPIFFS
-        type = "filesystem";
+  // ArduinoOTA
+  //   .onStart([]() {
+  //     String type;
+  //     if (ArduinoOTA.getCommand() == U_FLASH)
+  //       type = "sketch";
+  //     else // U_SPIFFS
+  //       type = "filesystem";
 
-      // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
-      Serial.println("Start updating " + type);
-    })
-    .onEnd([]() {
-      Serial.println("\nEnd");
-    })
-    .onProgress([](unsigned int progress, unsigned int total) {
-      Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
-    })
-    .onError([](ota_error_t error) {
-      Serial.printf("Error[%u]: ", error);
-      if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
-      else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
-      else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
-      else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
-      else if (error == OTA_END_ERROR) Serial.println("End Failed");
-    });
+  //     // NOTE: if updating SPIFFS this would be the place to unmount SPIFFS using SPIFFS.end()
+  //     Serial.println("Start updating " + type);
+  //   })
+  //   .onEnd([]() {
+  //     Serial.println("\nEnd");
+  //   })
+  //   .onProgress([](unsigned int progress, unsigned int total) {
+  //     Serial.printf("Progress: %u%%\r", (progress / (total / 100)));
+  //   })
+  //   .onError([](ota_error_t error) {
+  //     Serial.printf("Error[%u]: ", error);
+  //     if (error == OTA_AUTH_ERROR) Serial.println("Auth Failed");
+  //     else if (error == OTA_BEGIN_ERROR) Serial.println("Begin Failed");
+  //     else if (error == OTA_CONNECT_ERROR) Serial.println("Connect Failed");
+  //     else if (error == OTA_RECEIVE_ERROR) Serial.println("Receive Failed");
+  //     else if (error == OTA_END_ERROR) Serial.println("End Failed");
+  //   });
 
-  ArduinoOTA.begin();
+  // ArduinoOTA.begin();
 
   //Setup time synchronisation
   Serial.print("Connecting to RTC....");
@@ -502,7 +502,7 @@ void setup() {
 }
 
 void loop() {
-  ArduinoOTA.handle();
+  // ArduinoOTA.handle();
 
   // --------------------------------------- Redo this one with GSM --------------------------------------
   if (modem.isGprsConnected() && blast_mode) {
