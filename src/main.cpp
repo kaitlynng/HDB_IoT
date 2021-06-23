@@ -1,13 +1,10 @@
-#include "../config/system_config.h"
-#include "../config/user_config.h"
-
 #include <Arduino.h>
 #include <string>
 #include <time.h>  //time library
 #include <Wire.h> //communicate with i2c devices
 #include <WiFiClientSecure.h>
 
-#include <RTClib.h> //a fork of Jeelab's RTC library for Arduino
+#include <RTClib.h>            //a fork of Jeelab's RTC library for Arduino
 
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> //Async HTTP and WebSocket Server for ESP8266 Arduino
@@ -21,8 +18,15 @@
 #include <WiFiUdp.h>
 #include <ArduinoOTA.h>
 
-#include "modules/wifi_wrapper.h"
+#include "../config/system_config.h"
 
+#if __has_include("../config/user_config.h")
+#  include "../config/user_config.h"
+#else
+#  include "../config/default_user_config.h"
+#endif
+
+#include "modules/wifi_wrapper.h"
 #include "modules/can_wrapper.h"
 #include "modules/gps_wrapper.h"
 #include "modules/sd_wrapper.h"
@@ -177,6 +181,9 @@ String processor(const String &var) { // TODO
 
   } else if (var == "ContractNo") {
       return data_c[ID::contract_num];
+  
+  } else if (var == "LoggerID") {
+    return data_c[ID::logger_id];
 
   } else {
       return "";
@@ -303,7 +310,6 @@ void setup() {
   We set our ESP32 to wake up every 5 seconds
   */
   esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  //void MQTT_connect();
   Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
   esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
   Serial.println("Configured all RTC Peripherals to be powered down in sleep");  
@@ -327,7 +333,6 @@ void setup() {
   GPRS_connect(NETWORK_TIMEOUT);
   // ------------------------------------------------------------------------------
   
-
   char ip_cbuff[20];
 
   // ----------------------------------- GET IPADDR FROM GSM MODULE -------------------------------------------
@@ -480,8 +485,6 @@ void setup() {
   server.begin();
 
   Serial.println("Mirror Demo - ESP32-Arduino-CAN");
-  // display.begin(SSD1306_SWITCHCAPVCC, 0x3c);
-  // display.clearDisplay();
 
   // set blast_mode first
   blast_mode = 1;
@@ -607,7 +610,7 @@ void loop() {
     Serial.println("Sync rtc time!");
     sync_rtc_time();
     next_ntp_update = rtc.now() + ntp_interval;
-  }
+  } 
 
   dt_now = rtc.now();
 

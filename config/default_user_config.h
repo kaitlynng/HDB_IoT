@@ -1,15 +1,14 @@
 #ifndef USER_CONFIG_H_
 #define USER_CONFIG_H_
 
-#include <Arduino.h>
-
-#define DEVICE_NAME     "HDB6"
-#define CONTRACT_NAME   "TENGAHPAC07/D/027"
+#define LOGGER_ID       "test"
+#define CONTRACT_NAME   "TestContract"
 
 // network credentials
-#define NETWORK_SSID    "Ng-fam-weefee-extraordinaire" // "AIDrivers SG - 2.4G" // "AndroidAPf2b2" // "HDB4" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
-#define NETWORK_PASS    "tecknam67941827" // "@1Drivers75" // "rfkv0877" // "hdbdatalogger" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
+#define NETWORK_SSID    "AIDrivers SG - 2.4G" // "Ng-fam-weefee-extraordinaire" // "AndroidAPf2b2" // "HDB4" //"mobilelogger@95";//"AIDrivers SG - 2.4G";//"@zfzenryu";//AIDrivers SG - 5G//SINGTEL-776B//AndroidAPf2b2//mobilelogger95//SPSS_AQC601//HDB2//HDB3//TLC
+#define NETWORK_PASS    "@1Drivers75" // "tecknam67941827" // "rfkv0877" // "hdbdatalogger" //"logger@95";//"@1Drivers75";//"Zengfu9595";//@1Drivers75//eequuughah//rfkv0877//logger95//SPSS_AQC601//hdbdatalogger//TLC68620769
 
+<<<<<<< HEAD:config/user_config.h
 // GPRS credential
 const char apn[]      = "e-ideas";
 const char gprsUser[] = "";
@@ -17,9 +16,13 @@ const char gprsPass[] = "";
 
 const int LOCAL_IP_ADDRESS[] = {192, 168, 1, 184}; 
 const int GATEWAY_ADDRESS[] = {192, 168, 1, 254}; // need to configure!
+=======
+const int LOCAL_IP_ADDRESS[] = {192, 168, 10, 184}; 
+const int GATEWAY_ADDRESS[] = {192, 168, 10, 1}; // need to configure!
+>>>>>>> main:config/default_user_config.h
 const int SUBNET_ADDRESS[] = {255, 255, 255, 0};
 
-const int PRIMARY_DNS[] = {192, 168, 1, 254};
+const int PRIMARY_DNS[] = {192, 168, 10, 1};
 const int SECONDARY_DNS[] = {0, 0, 0, 0};
 
 // SIM7600 module
@@ -29,15 +32,17 @@ const int SECONDARY_DNS[] = {0, 0, 0, 0};
 // MQTT server
 #define MQTT_ENDPOINT    "a132xxzx3351g7-ats.iot.ap-southeast-1.amazonaws.com"
 #define MQTT_PORT        8883
-#define MQTT_CLIENT      DEVICE_NAME
-#define MQTT_TOPIC       "$aws/things/" DEVICE_NAME "/shadow/update"
+#define MQTT_CLIENT      LOGGER_ID
+#define MQTT_TOPIC       "$aws/things/" LOGGER_ID "/data"
 
 // SQL credentials
-#define MYSQL_USER      "leo"
-#define MYSQL_PASS      "lqNZ3K]2U0)br5"
+#define MYSQL_HOSTNAME  "aidrivers-hdb-01.c3yqyazj0wp1.us-east-2.rds.amazonaws.com"
+#define MYSQL_PORT      3306
+
+#define MYSQL_USER      "admin"
+#define MYSQL_PASS      "a1Drivers75"
 #define DEFAULT_DB      "leo_1"
 #define DEFAULT_TABLE   "Test4"
-const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *server* here// to check daily  //216,219,81,80//52,76,27,242
 
 // NTP server
 #define NTP_SERVER      "asia.pool.ntp.org"
@@ -50,12 +55,8 @@ const int MYSQL_SERVER_ADDRESS[] = {216, 219, 81, 80}; // IP of the MySQL *serve
 #define SMTP_SERVER             "smtp.gmail.com" //smtp.office365.com//smtp.gmail.com
 #define SMTP_SERVER_PORT        587 // 465 //465//587
 
-// edit the num_recipients to reflect the number of email recipients
-//#define EMAIL_NUM_RECIPIENTS    3
-//const String EMAIL_RECIPIENTS[EMAIL_NUM_RECIPIENTS] = {"aidrivers.crane@gmail.com", "radiancekw@gmail.com", "tankangjie@gmail.com"}; //aidrivers.demo@gmail.com
-
 #define EMAIL_NUM_RECIPIENTS    2
-const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "nguyen2001ag2@gmail.com"}; //aidrivers.demo@gmail.com
+const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "nguyen2001ag2@gmail.com"};
 
 #define UPDATE_RATE     10 //seconds
 

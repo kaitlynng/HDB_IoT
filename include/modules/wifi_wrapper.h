@@ -81,6 +81,10 @@ public:
         sprintf(cbuff, "%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
     }
 
+    void get_host_by_name(const char* hostname, IPAddress ip) {
+        WiFi.hostByName(hostname, ip);
+    }
+
     int get_wifi_status() {
         return WiFi.status();
     }
