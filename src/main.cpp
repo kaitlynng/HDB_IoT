@@ -71,7 +71,7 @@ CanWrapper can_wrapper(CAN_RXPIN, CAN_TXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBP
 GpsWrapper gps_wrapper(GPS_RXPIN, GPS_TXPIN, GPS_BAUDRATE);
 SdWrapper sd_wrapper(SD_CS);
 
-SqlWrapper sql_wrapper(MYSQL_SERVER_ADDRESS, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
+SqlWrapper sql_wrapper(MYSQL_HOSTNAME, MYSQL_PORT, MYSQL_USER, MYSQL_PASS, client, SQL_FLAG);
 // ---------------------- Stop MQTT function temporarily ------------------------------------
 // MqttWrapper mqtt_wrapper(MQTT_ENDPOINT, MQTT_PORT, MQTT_CLIENT, MQTT_TIMEOUT, MQTT_FLAG);
 EmailWrapper email_wrapper(SMTP_SERVER, SMTP_SERVER_PORT, EMAIL_FLAG);

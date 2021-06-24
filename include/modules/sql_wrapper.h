@@ -16,7 +16,7 @@ public:
           strncpy(m_user, user, 100);
           strncpy(m_pass, pass, 100);
       } //IPAddress serverAddr(216,219,81,80); 
-
+    
     SqlWrapper() = delete;
     ~SqlWrapper() {}
 
