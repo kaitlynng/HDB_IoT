@@ -1,3 +1,12 @@
-[submodule "lib/MySQL_Connector_Arduino"]
-	path = lib/MySQL_Connector_Arduino
+[submodule "esp_aid/lib/MySQL_Connector_Arduino"]
+	path = esp_aid/lib/MySQL_Connector_Arduino
 	url = git@github.com:kaitlynng/MySQL_Connector_Arduino.git
+[submodule "esp_hdb/lib/MySQL_Connector_Arduino"]
+	path = esp_hdb/lib/MySQL_Connector_Arduino
+	url = git@github.com:kaitlynng/MySQL_Connector_Arduino.git
+[submodule "mmi"]
+	path = mmi
+	url = git@github.com:kaitlynng/HDB_MMI.git
+[submodule "dashboard"]
+	path = dashboard
+	url = git@github.com:kaitlynng/HDB_dashboard.git
