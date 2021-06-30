@@ -303,6 +303,17 @@ void setup() {
   // This serial is for SIM7600 module
   SerialAT.begin(115200, SERIAL_8N1, GPS_RXPIN, GPS_TXPIN);
 
+  //---------------------------------------- Setting up ESP as Wifi Access Point ---------------------------
+  // Connect to Wi-Fi network with SSID and password
+  Serial.print("Setting AP (Access Point)…");
+  // Remove the password parameter, if you want the AP (Access Point) to be open
+  WiFi.softAP(ssid, password);
+
+  IPAddress IP = WiFi.softAPIP();
+  Serial.print("AP IP address: ");
+  Serial.println(IP); 
+  //---------------------------------------------------------------
+
   //Print the wakeup reason for ESP32
   print_wakeup_reason();
 
