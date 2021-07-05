@@ -29,27 +29,7 @@ String can_data[3]; // {can_id, msb, lsb}
 double gps_data[2]; // {lat, longi}
 char dt_buf[50];
 
-const int cbuff_size = 800;
-char cbuff[cbuff_size] = "";
 
-char data_c[ID::LAST][50];
-uint32_t data_i[ID::LAST];
-float data_f[ID::LAST]; 
-bool data_updated[ID::LAST];
-
-char filenames_arr[ID::LAST][FILENAME_SIZE];
-char csv_path[FILENAME_SIZE];
-
-int is_sensor_online = 0;
-int is_gps_online = 0;
-int blast_mode = 0;
-
-
-void reset_flags() {
-  for (int i = 0; i < ID::LAST; i++) {
-    data_updated[i] = false;
-  }
-}
 
 void print_wakeup_reason() {
   esp_sleep_wakeup_cause_t wakeup_reason;
@@ -92,5 +72,12 @@ void setup() {
 
 void loop() {
   uint32_t currentMillis = millis();
-
+  int count = 0;
+  if (currentMillis - previousMillis > 200){
+    can_wrapper.send(CAN_ID[0], CAN_test_data_incline[count]);
+    can_wrapper.send(CAN_ID[1], CAN_test_data_depth[count]);
+    can_wrapper.send(CAN_ID[2], CAN_test_data_torque[count]);
+    count++;
+    if (count == 3){count = 0;}
+  }
 }

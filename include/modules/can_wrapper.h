@@ -124,7 +124,7 @@ public:
         return m_CAN_data.lsb_f;
     } 
 
-    int send (uint32_t MsgID, uint8_t * data){
+    int send (const uint32_t MsgID, const uint8_t * data){
         CAN_frame_t tx_frame;
         tx_frame.FIR.B.FF = CAN_frame_std;
         tx_frame.MsgID = MsgID;
