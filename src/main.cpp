@@ -21,6 +21,8 @@
 #  include "../config/default_user_config.h"
 #endif
 
+#include "loggers/serial_logger.h"
+
 #include "modules/wifi_wrapper.h"
 #include "modules/can_wrapper.h"
 #include "modules/gps_wrapper.h"
@@ -56,6 +58,7 @@ char aws_cert_crt[2000];
 char aws_cert_private[2000];
 
 // objects
+SerialLogger serial_logger(LogLevel::LOG_DEBUG);
 WiFiWrapper wifi_wrapper(NETWORK_SSID, NETWORK_PASS, NETWORK_TIMEOUT);
 
 CanWrapper can_wrapper(CAN_RXPIN, CAN_TXPIN, CAN_RX_QUEUE_SIZE, CAN_SPEED_250KBPS);
@@ -105,33 +108,21 @@ void store(int id, char* val) {
 
 void store(int id, int val) {
   data_i[id] = val;
-  sprintf(data_c[id], "%d", val);
+  char buf[100];
+  snprintf(buf, 100, "%d", val);
+  store(id, buf);
 }
 
 void store(int id, float val) {
   data_f[id] = val;
-  sprintf(data_c[id], "%f", val);
+  char buf[100];
+  snprintf(buf, 100, "%f", val);
+  store(id, buf);
 }
 
 void reset_flags() {
   for (int i = 0; i < ID::LAST; i++) {
     data_updated[i] = false;
-  }
-}
-
-void print_wakeup_reason() {
-  esp_sleep_wakeup_cause_t wakeup_reason;
-
-  wakeup_reason = esp_sleep_get_wakeup_cause();
-
-  switch (wakeup_reason)
-  {
-    case ESP_SLEEP_WAKEUP_EXT0 : Serial.println("Wakeup caused by external signal using RTC_IO"); break;
-    case ESP_SLEEP_WAKEUP_EXT1 : Serial.println("Wakeup caused by external signal using RTC_CNTL"); break;
-    case ESP_SLEEP_WAKEUP_TIMER : Serial.println("Wakeup caused by timer"); break;
-    case ESP_SLEEP_WAKEUP_TOUCHPAD : Serial.println("Wakeup caused by touchpad"); break;
-    case ESP_SLEEP_WAKEUP_ULP : Serial.println("Wakeup caused by ULP program"); break;
-    default : Serial.printf("Wakeup was not caused by deep sleep: %d\n",wakeup_reason); break;
   }
 }
 
@@ -248,17 +239,11 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(115200);
 
-  //Print the wakeup reason for ESP32
-  print_wakeup_reason();
-
-  /*
-  First we configure the wake up source
-  We set our ESP32 to wake up every 5 seconds
-  */
-  esp_sleep_enable_timer_wakeup(TIME_TO_SLEEP * uS_TO_S_FACTOR);
-  Serial.println("Setup ESP32 to sleep for every " + String(TIME_TO_SLEEP) + " Seconds");
-  esp_sleep_pd_config(ESP_PD_DOMAIN_RTC_PERIPH, ESP_PD_OPTION_OFF);
-  Serial.println("Configured all RTC Peripherals to be powered down in sleep");  
+  serial_logger.log_debug("Test debug!");
+  serial_logger.log_info("Test loginfo!");
+  serial_logger.log_warn("Test logwarn!");
+  serial_logger.log_error("Test log error!");
+  serial_logger.log_fatal("Test fatal!");
 
   // initialise with default values
   for (int i = 0; i < ID::LAST; i++) {
@@ -371,6 +356,9 @@ void setup() {
   }
 
   //for max_depth, need the float value
+  Serial.println("LOOK HERE");
+  Serial.println(data_c[ID::max_depth]);
+  Serial.println((float)atof(data_c[ID::max_depth]));
   store(ID::max_depth, (float)atof(data_c[ID::max_depth]));
 
   reset_flags();
