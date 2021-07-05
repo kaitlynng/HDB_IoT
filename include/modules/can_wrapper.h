@@ -124,6 +124,18 @@ public:
         return m_CAN_data.lsb_f;
     } 
 
+    int send (uint32_t MsgID, uint8_t * data){
+        CAN_frame_t tx_frame;
+        tx_frame.FIR.B.FF = CAN_frame_std;
+        tx_frame.MsgID = MsgID;
+        tx_frame.FIR.B.DLC = 8;
+        for (int i=0; i < 8; i++){
+            tx_frame.data.u8[i] = data[i];
+        }
+        ESP32Can.CANWriteFrame(&tx_frame);
+        return 0;
+    }
+
 
 private:
     gpio_num_t m_rx_pin;

@@ -44,6 +44,12 @@ const int SECONDARY_DNS[] = {0, 0, 0, 0};
 #define EMAIL_NUM_RECIPIENTS    2
 const char* EMAIL_RECIPIENTS[] = {"kirabananana@gmail.com", "nguyen2001ag2@gmail.com"};
 
+// Field to adjust data send to another ESP
+const uint32_t CAN_ID [3] ={};
+const uint8_t CAN_test_data[3][8] = {{},{},{}};
+
+
+
 #define UPDATE_RATE     10 //seconds
 
 #define SQL_FLAG        true
