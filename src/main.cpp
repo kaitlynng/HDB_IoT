@@ -105,12 +105,16 @@ void store(int id, char* val) {
 
 void store(int id, int val) {
   data_i[id] = val;
-  sprintf(data_c[id], "%d", val);
+  char buf[50];
+  sprintf(buf, "%d", val);
+  store(id, buf);
 }
 
 void store(int id, float val) {
   data_f[id] = val;
-  sprintf(data_c[id], "%f", val);
+  char buf[50];
+  sprintf(buf, "%f", val);
+  store(id, buf);
 }
 
 void reset_flags() {
