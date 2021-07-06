@@ -47,7 +47,7 @@ public:
 
         while(!mqtt_client.connect(m_client_name)) {
             if (m_timeout > 0 && millis() - stamp > m_timeout * 1000) {
-                Serial.println("WARNING: MQTT connection timedout.");
+                Serial.println("WARNING: MQTT connection time out.");
                 return;
             }
             Serial.print(".");

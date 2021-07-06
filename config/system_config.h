@@ -69,7 +69,7 @@ const char* ID_NAMES[] = {
 };
 
 const char* DEFAULT_VALUES[] = {
-    "test", "Crane1", "Crane1", "TengahDrill", "EV-183159-DRILL-01-DIGITALPILE-SANY-JURONG", "digitalpiling/System#Reading",
+    "test", "VirtualCrane", "VirtualCrane", "TengahDrill", "EV-183159-DRILL-01-DIGITALPILE-SANY-JURONG", "digitalpiling/System#Reading",
     "BLK306A", "21", "0.0.0.0",
     "6", "sensor readings", "0.0",
     "0.0", "0.0", "0.0", "G1-2",

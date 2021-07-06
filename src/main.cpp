@@ -4,7 +4,7 @@
 #include <Wire.h> //communicate with i2c devices
 #include <WiFiClientSecure.h>
 
-#include <RTClib.h> //a fork of Jeelab's RTC library for Arduino
+#include <RTClib.h>            //a fork of Jeelab's RTC library for Arduino
 
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h> //Async HTTP and WebSocket Server for ESP8266 Arduino
@@ -532,7 +532,7 @@ void loop() {
     Serial.println("Sync rtc time!");
     sync_rtc_time();
     next_ntp_update = rtc.now() + ntp_interval;
-  }
+  } 
 
   dt_now = rtc.now();
 
