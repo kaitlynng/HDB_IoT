@@ -155,15 +155,13 @@ const int EMAIL_FIELD_IDS[] = {
 };
 
 // http req fields //
-#define NUM_HTTP_FIELDS     7
+#define NUM_HTTP_FIELDS     4
 const char* HTTP_FIELDS[] = {
-    "input1", "input2", "input3", 
-    "input4", "input4", "input5", "input6"
+    "input1", "input2", "input3", "input5"
 };
 
 const int HTTP_FIELD_IDS[] = {
-    ID::hole_dia, ID::hole_num, ID::target_depth, 
-    ID::sender_id, ID::sensor_id, ID::block_num, ID::contract_num
+    ID::hole_dia, ID::hole_num, ID::target_depth, ID::block_num
 }; // HTML web page to handle 2 input fields (input1, input2)
 
 // json fields //

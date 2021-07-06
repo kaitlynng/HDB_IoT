@@ -270,6 +270,10 @@ void setup() {
 
   // set Logger ID
   strncpy(data_c[ID::logger_id], LOGGER_ID, 50);
+  
+  // set Machine ID
+  strncpy(data_c[ID::sender_id], MACHINE_ID, 50);
+  strncpy(data_c[ID::sensor_id], MACHINE_ID, 50);
 
   wifi_wrapper.set_static_ip_params(LOCAL_IP_ADDRESS, GATEWAY_ADDRESS, SUBNET_ADDRESS, PRIMARY_DNS, SECONDARY_DNS);
   wifi_wrapper.setup();
@@ -423,6 +427,7 @@ void loop() {
   ArduinoOTA.handle();
 
   if ((wifi_wrapper.get_wifi_status() == WL_CONNECTED) && blast_mode) {
+    server.begin();
     // do a blast
     Serial.println("WiFi connection restored! Blasting messages...");
 

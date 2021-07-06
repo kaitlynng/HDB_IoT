@@ -2,6 +2,7 @@
 #define USER_CONFIG_H_
 
 #define LOGGER_ID       "test"
+#define MACHINE_ID      "TestMachine"
 #define CONTRACT_NAME   "TestContract"
 
 // network credentials
