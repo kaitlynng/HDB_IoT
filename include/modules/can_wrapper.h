@@ -31,19 +31,19 @@ public:
         // ACR register : 1100 0000 0010 1000 0011 1000 1000 0000
         // AMR Register : 0000 0000 0000 0000 0000 0011 1100 0011
         // Relevant information can be found in this link : https://www.nxp.com/docs/en/application-note/AN97076.pdf
-        CAN_filter_t p_filter;
-        p_filter.FM = Single_Mode;
+        // CAN_filter_t p_filter;
+        // p_filter.FM = Single_Mode;
 
-        p_filter.ACR0 = 0xC0;
-        p_filter.ACR1 = 0x28;
-        p_filter.ACR2 = 0x38;
-        p_filter.ACR3 = 0x80;
+        // p_filter.ACR0 = 0xC0;
+        // p_filter.ACR1 = 0x28;
+        // p_filter.ACR2 = 0x38;
+        // p_filter.ACR3 = 0x80;
 
-        p_filter.AMR0 = 0x00;
-        p_filter.AMR1 = 0x00;
-        p_filter.AMR2 = 0x03;
-        p_filter.AMR3 = 0xC3;
-        ESP32Can.CANConfigFilter(&p_filter);
+        // p_filter.AMR0 = 0x00;
+        // p_filter.AMR1 = 0x00;
+        // p_filter.AMR2 = 0x03;
+        // p_filter.AMR3 = 0xC3;
+        // ESP32Can.CANConfigFilter(&p_filter);
 
 
         ESP32Can.CANInit();
@@ -126,7 +126,7 @@ public:
 
     int send (const uint32_t MsgID, const uint8_t * data){
         CAN_frame_t tx_frame;
-        tx_frame.FIR.B.FF = CAN_frame_std;
+        tx_frame.FIR.B.FF = CAN_frame_ext;
         tx_frame.MsgID = MsgID;
         tx_frame.FIR.B.DLC = 8;
         for (int i=0; i < 8; i++){

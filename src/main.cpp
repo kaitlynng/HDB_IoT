@@ -4,9 +4,9 @@
 #include <Wire.h> //communicate with i2c devices
 #include <WiFiClientSecure.h>
 
-#include <ESPmDNS.h>
-#include <WiFiUdp.h>
-#include <ArduinoOTA.h>
+// #include <ESPmDNS.h>
+// #include <WiFiUdp.h>
+// #include <ArduinoOTA.h>
 
 #include "../config/system_config.h"
 
