@@ -44,7 +44,7 @@
     <span id="loggerID">%LoggerID%</span>
   </p>
  <p>
-    <span class="dht-labels">Hole Diameter:</span> 
+    <span class="dht-labels">Pile Diameter:</span> 
     <span id="holediameter">%Holediameter%</span>
     <span id="units">m</span>
   </p>
@@ -66,13 +66,13 @@
     <span id="ContractNO">%ContractNo%</span>
   </p>
   <p>
-    <span class="dht-labels">Hole Number:</span>
+    <span class="dht-labels">Pile ID:</span>
     <span id="holenumber">%Holenumber%</span>
   </p>
   </div>
 
 <form action="/get" class="send_container1">
-    Hole Diameter:<input type="text" id="input1" list="HoleSizes" name="input1">
+    Pile Diameter:<input type="text" id="input1" list="HoleSizes" name="input1">
     <datalist id="HoleSizes">
      <option value="1.0" data-id="1" />
      <option value="1.1" data-id="2" />
@@ -83,24 +83,14 @@
     <input type="submit" value="Submit" onSubmit="return false">
   </form><br>
   <form action="/get">
-    Hole Number: <input type="text" id="input2" list="HoleNo" name="input2">
-    <datalist id="HoleNo">
-     <option value="1" data-id="1" />
-     <option value="2" data-id="2" />
-     <option value="3" data-id="3" />
-     <option value="4" data-id="4" />
-     <option value="5" data-id="5" />
-    </datalist>
-    <input type="submit" value="Submit" onSubmit="return false">
-  </form><br>
-  <form action="/get">
     Pile Length: <input type="text" id="input3" list="Pile_length" name="input3">
     <datalist id="Pile_length">
      <option value="27" data-id="1" />
     </datalist>
     <input type="submit" value="Submit" onSubmit="return false">
   </form><br>
-    <form action="/get">
+  
+  <!-- <form action="/get">
     Machine ID: <input type="text" id="input4" list="Machine_ID" name="input4">
     <datalist id="Machine_ID">
      <option value="Crane1" data-id="1" />
@@ -108,7 +98,7 @@
      <option value="Crane3" data-id="1" />
     </datalist>
     <input type="submit" value="Submit" onSubmit="return false">
-  </form><br>
+  </form><br>  -->
   <form action="/get">
     Block No: <input type="text" id="input5" list="BlockNo" name="input5">
     <datalist id="BlockNo">
@@ -116,10 +106,21 @@
     </datalist>
     <input type="submit" value="Submit" onSubmit="return false">
   </form><br>
-  <form action="/get">
+  <!-- <form action="/get">
     Contract No: <input type="text" id="input6" list="Contract_NO" name="input6">
     <datalist id="Contract_NO">
      <option value="Contract1" data-id="1" />
+    </datalist>
+    <input type="submit" value="Submit" onSubmit="return false">
+  </form><br> -->
+  <form action="/get">
+    Pile ID: <input type="text" id="input2" list="HoleNo" name="input2">
+    <datalist id="HoleNo">
+     <option value="1" data-id="1" />
+     <option value="2" data-id="2" />
+     <option value="3" data-id="3" />
+     <option value="4" data-id="4" />
+     <option value="5" data-id="5" />
     </datalist>
     <input type="submit" value="Submit" onSubmit="return false">
   </form><br>
@@ -165,15 +166,15 @@ setInterval(function ( ) {
 }, 10000 ) ;
 
 setInterval(function ( ) {
-var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("MachineID").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/MachineID", true);
-  xhttp.send();
-}, 10000 ) ;
+// var xhttp = new XMLHttpRequest();
+//   xhttp.onreadystatechange = function() {
+//     if (this.readyState == 4 && this.status == 200) {
+//       document.getElementById("MachineID").innerHTML = this.responseText;
+//     }
+//   };
+//   xhttp.open("GET", "/MachineID", true);
+//   xhttp.send();
+// }, 10000 ) ;
 var xhttp = new XMLHttpRequest();
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
@@ -183,15 +184,15 @@ var xhttp = new XMLHttpRequest();
   xhttp.open("GET", "/BlockNO", true);
   xhttp.send();
 }, 10000 ) ;
-var xhttp = new XMLHttpRequest();
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      document.getElementById("ContractNO").innerHTML = this.responseText;
-    }
-  };
-  xhttp.open("GET", "/ContractNO", true);
-  xhttp.send();
-}, 10000 ) ;
+// var xhttp = new XMLHttpRequest();
+//   xhttp.onreadystatechange = function() {
+//     if (this.readyState == 4 && this.status == 200) {
+//       document.getElementById("ContractNO").innerHTML = this.responseText;
+//     }
+//   };
+//   xhttp.open("GET", "/ContractNO", true);
+//   xhttp.send();
+// }, 10000 ) ;
 
 
 
