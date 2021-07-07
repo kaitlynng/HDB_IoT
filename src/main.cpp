@@ -330,7 +330,10 @@ void setup() {
   sql_wrapper.setup();
 
   gps_wrapper.setup();
-  sd_wrapper.setup();
+  if (!sd_wrapper.setup()) {
+    ESP.restart();
+  }
+  
   email_wrapper.setup(); //doesn't do anything, for standardisation
 
   // read mqtt certificates

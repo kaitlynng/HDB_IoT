@@ -15,17 +15,19 @@ public:
     SdWrapper()  = delete;
     ~SdWrapper() {}
 
-    void setup() {
+    int setup() {
         spiSD.begin(14, 27, 13, m_sd_cs); //SCK,MISO,MOSI,SS //HSPI1
         if (!SD.begin(m_sd_cs, spiSD )) {
             Serial.println("WARNING: Card Mount Failed");
-            return;
+            return 0;
         }
 
         if (SD.cardType() == CARD_NONE) {
             Serial.println("WARNING: No SD card attached");
-            return;
+            return 0;
         }
+
+        return 1;
     }
 
     bool is_file_available(const char* path) {
