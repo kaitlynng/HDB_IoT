@@ -100,24 +100,27 @@ const int STORAGE_FILENAME_IDS[] = {
 #define HTML_FILENAME       "/index.htm"
 
 // SQL fields //
-#define NUM_SQL_FIELDS      18
+
+
+#define NUM_SQL_FIELDS      19
 const char* SQL_FIELDS[] = {
-    "LoggerID", "SenderID", "SensorID",
-    "Lat", "Longi",
-    "HoleDiameter", "HoleNumber",
-    "EventID", "Sensorstatus", "Time", "Severity",
-    "Depth", "Torque", "InclinationX", "InclinationY",
-    "Description", "Address2", "MaxDepth"
+    "logger_id", "machine_id", 
+    "event_id", "block_num", 
+    "pile_id", "pile_diameter", "pile_length"
+    "severity", "description", 
+    "timestamp", "sensor_status", "lat", "lon",
+    "depth", "torque", "x_inclination", "y_inclination", "max_depth",
+    "ip_address"
 };
 
 const int SQL_FIELD_IDS[] = {
-    ID::logger_id, ID::sender_id, ID::sensor_id,
-    ID::lat, ID::longi,
-    ID::hole_dia, ID::hole_num,
-    ID::event_title, ID::sensor_status,
-    ID::datetime, ID::severity,
-    ID::depth, ID::torque, ID::incl_x, ID::incl_y,
-    ID::description, ID::ip_address, ID::max_depth
+    ID::logger_id, ID::sender_id,
+    ID::event_id, ID::block_num,
+    ID::hole_num, ID::hole_dia, ID::target_depth,
+    ID::severity, ID::description,
+    ID::datetime, ID::sensor_status, ID::lat, ID::longi,
+    ID::depth, ID::torque, ID::incl_x, ID::incl_y, ID::max_depth,
+    ID::ip_address
 };
 
 // csv fields //

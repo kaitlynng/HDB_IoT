@@ -23,13 +23,13 @@ const int SECONDARY_DNS[] = {0, 0, 0, 0};
 #define MQTT_TOPIC       "$aws/things/" LOGGER_ID "/data"
 
 // SQL credentials
-#define MYSQL_HOSTNAME  "aidrivers-hdb-01.c3yqyazj0wp1.us-east-2.rds.amazonaws.com"
+#define MYSQL_HOSTNAME  "aidrivers-hdb-01.c08vyzk0x9qg.us-east-2.rds.amazonaws.com"
 #define MYSQL_PORT      3306
 
 #define MYSQL_USER      "admin"
 #define MYSQL_PASS      "a1Drivers75"
-#define DEFAULT_DB      "leo_1"
-#define DEFAULT_TABLE   "Test4"
+#define DEFAULT_DB      "piling_dev_01"
+#define DEFAULT_TABLE   "piling"
 
 // NTP server
 #define NTP_SERVER      "asia.pool.ntp.org"
