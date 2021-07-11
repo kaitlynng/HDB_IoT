@@ -40,19 +40,19 @@ public:
         m_secondary_dns = IPAddress(secondary_dns[0], secondary_dns[1], secondary_dns[2], secondary_dns[3]);
     }         
 
-    void setup() {
+    int setup() {
         WiFi.mode(WIFI_STA);
         if (!WiFi.config(m_local_ip, m_gateway, m_subnet, m_primary_dns, m_secondary_dns)) {
             Serial.println("WARNING: STA Failed to configure");
         }
-        connect();
+        return connect();
     }
 
     void connect_unblocking() {
         WiFi.begin(m_network_ssid, m_network_pass);
     }
 
-    void connect() {
+    int connect() {
 
         unsigned long startTime = millis();
 
@@ -68,10 +68,10 @@ public:
 
         switch (WiFi.status()) 
         {
-            case 6 : Serial.print("Wifi not connected!"); break;
-            case 3 : Serial.println("Wifi connected! Continue with ops"); break;
-            case 1 : Serial.println("No wifi connected"); break; //ESP.restart(); break; //append_file(SD, "/error_log", "No wifi \n");
-            default : Serial.print("Unknown code: "); Serial.println(WiFi.status());
+            case 6 : Serial.print("Wifi not connected!"); return 0;
+            case 3 : Serial.println("Wifi connected! Continue with ops"); return 1;
+            case 1 : Serial.println("No wifi connected"); return 0; //ESP.restart(); break; //append_file(SD, "/error_log", "No wifi \n");
+            default : Serial.print("Unknown code: "); return 0;
         }
 
     }
