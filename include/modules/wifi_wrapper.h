@@ -2,7 +2,6 @@
 #define WIFI_WRAPPER_H_
 
 #include <Arduino.h>
-#include <WiFiClientSecure.h>
 
 class WiFiWrapper
 {

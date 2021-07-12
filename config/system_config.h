@@ -33,19 +33,22 @@ enum ID {
     logger_id, machine_id, ip_address, lat, lon, 
     sensor_status, gps_status, datetime, pile_id,
     depth, torque, incl_x, incl_y,
+    description,
     LAST
 };
 
 const char* ID_NAMES[] = {
     "logger_id", "machine_id", "ip_address", "lat", "lon",
     "sensor_status", "gps_status", "datetime", "pile_id",
-    "depth", "torque", "incl_x", "incl_y"
+    "depth", "torque", "incl_x", "incl_y",
+    "description"
 };
 
 const char* DEFAULT_VALUES[] = {
-    "test", "testMachine", "0.0.0.0", "1.3171", "103.7875",
+    "test", "testMachine", "0.0.0.0", "0.0", "0.0",
     "0", "0", "0000-00-00_00-00-00", "",
     "0.0", "0.0", "0.0", "0.0",
+    "SANY drilling rig sensor readings"
 };
 
 #define BLAST_FILENAME          "/blast"

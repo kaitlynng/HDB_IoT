@@ -18,7 +18,7 @@ const int SECONDARY_DNS[] = {0, 0, 0, 0};
 // HTTP server
 #define HTTP_ENDPOINT   "http://hdb.aidrivers.ai/api/crane/" MACHINE_ID
 
-#define UPDATE_RATE     10 //seconds
-#define DEBUG_FLAG      true
+#define UPDATE_RATE     5 //seconds
+#define DEBUG_FLAG      false
 
 #endif //USER_CONFIG_H_

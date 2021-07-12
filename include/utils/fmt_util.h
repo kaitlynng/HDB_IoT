@@ -22,7 +22,7 @@ void format_heartbeat_msg(float lat, float lon, const int cbuff_size, char* cbuf
 }
 
 void format_job_msg(float lat, float lon, 
-                     int pile_id, 
+                     int pile_id, char* description,
                      char* timestamp, float payload_lat, float payload_lon, 
                      char* sensor_status, char* gps_status,
                      int num_crane_fields, const char* fields[], const int tgt_ids[], float data[], 
@@ -34,7 +34,7 @@ void format_job_msg(float lat, float lon,
     crane["lon"] = lon;
 
     JsonObject job = doc.createNestedObject("job");
-    job["pile_id"] = pile_id;
+    job["id"] = pile_id;
 
     JsonObject payload = job.createNestedObject("payload");
     payload["timestamp"] = timestamp;
@@ -43,6 +43,7 @@ void format_job_msg(float lat, float lon,
 
     payload["sensor_status"] = sensor_status;
     payload["gps_status"] = gps_status;
+    payload["description"] = description;
 
     
     for (int i = 0; i < num_crane_fields; i++) {
